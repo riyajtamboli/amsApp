@@ -1,210 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attendance Records | Smart Attendance System</title>
-  <link rel="stylesheet" href="modern-styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Records</title>
+    <link rel="stylesheet" href="modern-styles.css">
 </head>
 <body>
-<div class="container">
+    <div class="container">
+        <!-- Navbar -->
+        <div class="navbar glass-card">
+            <a href="index.html">🏠 Home</a>
+            <a href="add-employee.html">➕ Add Employee</a>
+            <a href="view-employees.html">👥 View Employees</a>
+            <a href="attendance-records.html" class="active">📊 Records</a>
+            <a href="verify.html">✋ Verify</a>
+        </div>
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <a href="index.html">🏠 Dashboard</a>
-    <a href="employees.html">👨‍💼 Employees</a>
-    <a href="attendance-record.html" class="active">📊 Attendance</a>
-    <a href="reports.html">📑 Reports</a>
-  </nav>
+        <!-- Header -->
+        <div class="header">
+            <h1>📑 Attendance Records</h1>
+            <p>View and analyze employee attendance history</p>
+        </div>
 
-  <!-- Header -->
-  <div class="header">
-    <h1>📊 Attendance Records</h1>
-    <p>Track employee attendance history and daily absentees</p>
-  </div>
+        <!-- Stats Section -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <span class="stat-number" id="totalRecords">0</span>
+                <span class="stat-label">Total Records</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="presentToday">0</span>
+                <span class="stat-label">Present Today</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalEmployees">0</span>
+                <span class="stat-label">Total Employees</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="attendanceRate">0%</span>
+                <span class="stat-label">Attendance Rate</span>
+            </div>
+        </div>
 
-  <!-- Stats -->
-  <div class="stats-container">
-    <div class="stat-card">
-      <span class="stat-number" id="totalRecords">0</span>
-      <span class="stat-label">Total Records</span>
+        <!-- Filter Section -->
+        <div class="form-section glass-card">
+            <h3>🔍 Filter Records</h3>
+            <div class="search-container">
+                <select id="employeeFilter" class="filter-select">
+                    <option value="">All Employees</option>
+                </select>
+                <input type="date" id="fromDate" class="filter-select">
+                <input type="date" id="toDate" class="filter-select">
+                <select id="statusFilter" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="PRESENT">Present</option>
+                    <option value="ABSENT">Absent</option>
+                </select>
+            </div>
+            <button class="btn" id="applyFilters">✨ Apply Filters</button>
+            <button class="btn btn-secondary" id="resetFilters">🔄 Reset</button>
+            <button class="btn btn-secondary" id="refreshData">♻ Refresh Data</button>
+            <button class="btn" id="exportCsv">📥 Export CSV</button>
+        </div>
+
+        <!-- Absent Employees Section -->
+        <div class="form-section glass-card" id="absentSection">
+            <h3>🚫 Absent Employees Today</h3>
+            <p id="absentCount">0 employees absent today</p>
+            <button class="btn btn-danger" id="exportAbsentCsv">📤 Export Absent CSV</button>
+            <div class="table-container">
+                <table class="table" id="absentTable">
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Attendance Records Table -->
+        <div class="form-section glass-card">
+            <h3>📅 Attendance Records</h3>
+            <div class="table-container">
+                <table class="table" id="recordsTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Employee</th>
+                            <th>Fingerprint ID</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-number" id="presentToday">0</span>
-      <span class="stat-label">Present Today</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-number" id="totalEmployees">0</span>
-      <span class="stat-label">Total Employees</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-number" id="attendanceRate">0%</span>
-      <span class="stat-label">Attendance Rate</span>
-    </div>
-  </div>
 
-  <!-- Filters -->
-  <div class="glass-card">
-    <h3 class="gradient-text">🔍 Filter Records</h3>
-    <div class="search-container">
-      <select id="employeeFilter" class="filter-select"></select>
-      <input type="date" id="fromDate" class="filter-select">
-      <input type="date" id="toDate" class="filter-select">
-      <select id="statusFilter" class="filter-select">
-        <option value="">All</option>
-        <option value="PRESENT">Present</option>
-        <option value="ABSENT">Absent</option>
-      </select>
-    </div>
-    <div style="margin-top:15px;">
-      <button class="btn" onclick="applyFilters()">🔎 Apply Filters</button>
-      <button class="btn btn-secondary" onclick="resetFilters()">♻ Reset</button>
-      <button class="btn" onclick="fetchAttendanceRecords()">🔄 Refresh</button>
-      <button class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
-    </div>
-  </div>
+    <script>
+        const apiEmployees = "/api/employees";
+        const apiRecords = "/api/attendance/records";
 
-  <!-- Absent Employees -->
-  <div class="glass-card">
-    <h3 class="gradient-text">🚫 Absent Employees Today</h3>
-    <div class="message error">
-      <span id="absentCount">0</span> employees absent on <span id="todayDate"></span>
-    </div>
-    <button class="btn btn-danger" onclick="exportAbsentCSV()">📥 Export Absent CSV</button>
-  </div>
+        async function fetchEmployees() {
+            const res = await fetch(apiEmployees);
+            return res.json();
+        }
 
-  <!-- Attendance Table -->
-  <div class="table-container glass-card">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>📅 Date</th>
-          <th>⏰ Time</th>
-          <th>👤 Employee</th>
-          <th>🔑 Fingerprint ID</th>
-          <th>🏢 Department</th>
-          <th>📌 Status</th>
-        </tr>
-      </thead>
-      <tbody id="attendanceTable">
-        <tr><td colspan="6" class="loading">Loading attendance records...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+        async function fetchRecords() {
+            const res = await fetch(apiRecords);
+            return res.json();
+        }
 
-<script>
-let allRecords = [];
-let employees = [];
+        function renderStats(records, employees) {
+            const today = new Date().toISOString().split("T")[0];
+            const presentToday = records.filter(r => r.date === today && r.status === "PRESENT").length;
+            const totalEmployees = employees.length;
+            const rate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
 
-async function fetchEmployees() {
-  const res = await fetch("/api/employees");
-  employees = await res.json();
-  const select = document.getElementById("employeeFilter");
-  select.innerHTML = `<option value="">All Employees</option>`;
-  employees.forEach(e => {
-    select.innerHTML += `<option value="${e.fingerprintId}">${e.name} (${e.fingerprintId})</option>`;
-  });
-  document.getElementById("totalEmployees").innerText = employees.length;
-}
+            document.getElementById("totalRecords").textContent = records.length;
+            document.getElementById("presentToday").textContent = presentToday;
+            document.getElementById("totalEmployees").textContent = totalEmployees;
+            document.getElementById("attendanceRate").textContent = rate + "%";
+        }
 
-async function fetchAttendanceRecords() {
-  const res = await fetch("/api/attendance/records");
-  allRecords = await res.json();
-  renderTable(allRecords);
-  updateStats(allRecords);
-  checkAbsent(allRecords);
-}
+        function renderAbsent(employees, records) {
+            const today = new Date().toISOString().split("T")[0];
+            const presentIds = records.filter(r => r.date === today && r.status === "PRESENT").map(r => r.employeeId);
+            const absent = employees.filter(e => !presentIds.includes(e.employeeId));
 
-function renderTable(records) {
-  const tbody = document.getElementById("attendanceTable");
-  if (!records.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="loading">No attendance records found</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = records.map(r => `
-    <tr>
-      <td>${r.date}</td>
-      <td>${r.time}</td>
-      <td>${r.employeeName}</td>
-      <td>${r.fingerprintId}</td>
-      <td>${r.department}</td>
-      <td><span class="message ${r.status==='PRESENT'?'success':'error'}">${r.status}</span></td>
-    </tr>
-  `).join("");
-}
+            document.getElementById("absentCount").textContent = `${absent.length} employees absent on ${today}`;
+            const tbody = document.querySelector("#absentTable tbody");
+            tbody.innerHTML = absent.map(e => `
+                <tr>
+                    <td>${e.employeeId}</td>
+                    <td>${e.name}</td>
+                    <td>${e.department}</td>
+                    <td style="color:red;font-weight:bold">ABSENT</td>
+                </tr>`).join("");
+        }
 
-function updateStats(records) {
-  document.getElementById("totalRecords").innerText = records.length;
-  const present = records.filter(r => r.status === "PRESENT").length;
-  document.getElementById("presentToday").innerText = present;
-  const total = employees.length || 1;
-  document.getElementById("attendanceRate").innerText = ((present / total) * 100).toFixed(1) + "%";
-}
+        function renderRecords(records, employees) {
+            const tbody = document.getElementById("recordsBody");
+            tbody.innerHTML = records.map(r => {
+                const emp = employees.find(e => e.employeeId === r.employeeId) || {};
+                return `
+                    <tr>
+                        <td>${r.date}</td>
+                        <td>${r.time}</td>
+                        <td>${emp.name || "Unknown"}</td>
+                        <td>${r.employeeId}</td>
+                        <td>${emp.department || "-"}</td>
+                        <td>${r.status}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
 
-function applyFilters() {
-  let filtered = [...allRecords];
-  const empId = document.getElementById("employeeFilter").value;
-  const from = document.getElementById("fromDate").value;
-  const to = document.getElementById("toDate").value;
-  const status = document.getElementById("statusFilter").value;
+        function applyFilters(records) {
+            const empId = document.getElementById("employeeFilter").value;
+            const fromDate = document.getElementById("fromDate").value;
+            const toDate = document.getElementById("toDate").value;
+            const status = document.getElementById("statusFilter").value;
 
-  if (empId) filtered = filtered.filter(r => r.fingerprintId === empId);
-  if (from) filtered = filtered.filter(r => r.date >= from);
-  if (to) filtered = filtered.filter(r => r.date <= to);
-  if (status) filtered = filtered.filter(r => r.status === status);
+            return records.filter(r => {
+                return (!empId || r.employeeId === empId) &&
+                       (!fromDate || r.date >= fromDate) &&
+                       (!toDate || r.date <= toDate) &&
+                       (!status || r.status === status);
+            });
+        }
 
-  renderTable(filtered);
-  updateStats(filtered);
-}
+        function exportCsvFile(data, filename) {
+            let csv = Object.keys(data[0]).join(",") + "\n";
+            csv += data.map(row => Object.values(row).join(",")).join("\n");
 
-function resetFilters() {
-  document.getElementById("employeeFilter").value = "";
-  document.getElementById("fromDate").value = "";
-  document.getElementById("toDate").value = "";
-  document.getElementById("statusFilter").value = "";
-  renderTable(allRecords);
-  updateStats(allRecords);
-}
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            a.click();
+        }
 
-async function checkAbsent(records) {
-  const today = new Date().toISOString().split("T")[0];
-  document.getElementById("todayDate").innerText = today;
-  const presentIds = records.filter(r => r.date === today && r.status === "PRESENT").map(r => r.fingerprintId);
-  const absents = employees.filter(e => !presentIds.includes(e.fingerprintId));
-  document.getElementById("absentCount").innerText = absents.length;
-  return absents;
-}
+        async function loadData() {
+            const employees = await fetchEmployees();
+            const records = await fetchRecords();
 
-function downloadCSV(filename, rows) {
-  const csv = rows.map(r => r.map(val => `"${val}"`).join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-}
+            // Populate employee filter
+            const empSelect = document.getElementById("employeeFilter");
+            empSelect.innerHTML = `<option value="">All Employees</option>` +
+                employees.map(e => `<option value="${e.employeeId}">${e.name}</option>`).join("");
 
-function exportCSV() {
-  if (!allRecords.length) return alert("No records to export.");
-  const rows = [["Date","Time","Employee","Fingerprint ID","Department","Status"]];
-  allRecords.forEach(r => rows.push([r.date,r.time,r.employeeName,r.fingerprintId,r.department,r.status]));
-  downloadCSV("attendance_records.csv", rows);
-}
+            renderStats(records, employees);
+            renderAbsent(employees, records);
+            renderRecords(records, employees);
 
-async function exportAbsentCSV() {
-  const absents = await checkAbsent(allRecords);
-  if (!absents.length) return alert("No absent employees.");
-  const rows = [["ID","Name","Email","Department"]];
-  absents.forEach(e => rows.push([e.fingerprintId,e.name,e.email,e.department]));
-  downloadCSV("absent_employees.csv", rows);
-}
+            // Filters
+            document.getElementById("applyFilters").onclick = () => {
+                const filtered = applyFilters(records);
+                renderRecords(filtered, employees);
+            };
 
-// Init
-(async () => {
-  await fetchEmployees();
-  await fetchAttendanceRecords();
-})();
-</script>
+            document.getElementById("resetFilters").onclick = () => {
+                document.getElementById("employeeFilter").value = "";
+                document.getElementById("fromDate").value = "";
+                document.getElementById("toDate").value = "";
+                document.getElementById("statusFilter").value = "";
+                renderRecords(records, employees);
+            };
+
+            document.getElementById("refreshData").onclick = loadData;
+
+            // Export CSV
+            document.getElementById("exportCsv").onclick = () => {
+                exportCsvFile(records, "attendance_records.csv");
+            };
+
+            document.getElementById("exportAbsentCsv").onclick = () => {
+                const today = new Date().toISOString().split("T")[0];
+                const presentIds = records.filter(r => r.date === today && r.status === "PRESENT").map(r => r.employeeId);
+                const absent = employees.filter(e => !presentIds.includes(e.employeeId));
+                exportCsvFile(absent, "absent_employees.csv");
+            };
+        }
+
+        loadData();
+    </script>
 </body>
 </html>
