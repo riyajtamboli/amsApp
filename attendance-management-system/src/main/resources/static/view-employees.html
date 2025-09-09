@@ -5,6 +5,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* 🔥 Extra styling for Ex-Employees section */
+        .ex-employees-section {
+            margin-top: 40px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .section-header {
+            background: #007bff;
+            color: #fff;
+            padding: 12px 18px;
+            font-weight: bold;
+            font-size: 18px;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 10px;
+        }
+
+        .ex-employees-section .table-container {
+            margin-top: 15px;
+        }
+
+        .restore-btn {
+            padding: 6px 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .restore-btn:hover {
+            background: #218838;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -76,32 +115,31 @@
         </div>
 
         <!-- Ex-Employees Section -->
-       <!-- Ex-Employees Section -->
-<div class="ex-employees-section">
-    <div class="section-header">🗃 Ex-Employees Archive</div>
+        <div class="ex-employees-section">
+            <div class="section-header">🗃 Ex-Employees Archive</div>
+            
+            <div id="exEmployeesContainer" class="table-container" style="display: none;">
+                <table class="employee-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>👤 Name</th>
+                            <th>🔑 Fingerprint ID</th>
+                            <th>📧 Email</th>
+                            <th>🏢 Department</th>
+                            <th>📅 Deleted Date</th>
+                            <th>🛠 Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exEmployeeTableBody"></tbody>
+                </table>
+            </div>
 
-    <div id="exEmployeesContainer" class="table-container" style="display: none;">
-        <table class="employee-table"> <!-- 🔥 use same class as active table -->
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>👤 Name</th>
-                    <th>🔑 Fingerprint ID</th>
-                    <th>📧 Email</th>
-                    <th>🏢 Department</th>
-                    <th>📅 Deleted Date</th>
-                    <th>🛠 Actions</th>
-                </tr>
-            </thead>
-            <tbody id="exEmployeeTableBody"></tbody>
-        </table>
-    </div>
-
-    <div id="noExEmployeesState" class="no-employees" style="display: none;">
-        <h3>🗃 No Ex-Employees</h3>
-        <p>No employees have been deleted yet.</p>
-    </div>
-</div>
+            <div id="noExEmployeesState" class="no-employees" style="display: none;">
+                <h3>🗃 No Ex-Employees</h3>
+                <p>No employees have been deleted yet.</p>
+            </div>
+        </div>
 
         <!-- Back to Home -->
         <div style="text-align: center; margin-top: 30px;">
@@ -122,13 +160,7 @@
     </div>
 
     <script>
-        // ✅ BASE_URL with /api
-        //const BASE_URL = "https://amsapplication-production.up.railway.app/api";
-        // If frontend + backend are same Railway service
         const BASE_URL = "/api";
-
-        // If backend is separate, replace with actual backend URL
-        // const BASE_URL = "https://amsapplication-production.up.railway.app/api";
 
         let allEmployees = [];
         let filteredEmployees = [];
@@ -145,7 +177,7 @@
         async function loadEmployees() {
             showLoading();
             try {
-                const response = await fetch(${BASE_URL}/employees);
+                const response = await fetch(`${BASE_URL}/employees`);
                 if (response.ok) {
                     allEmployees = await response.json();
                     filteredEmployees = [...allEmployees];
@@ -193,7 +225,7 @@
         function deleteEmployee(id, name) {
             employeeToDelete = { id, name };
             document.getElementById('confirmMessage').textContent =
-                Are you sure you want to delete "${name}"? This action cannot be undone.;
+                `Are you sure you want to delete "${name}"? This action cannot be undone.`;
             document.getElementById('confirmDialog').style.display = 'flex';
         }
 
@@ -205,18 +237,18 @@
         async function confirmDelete() {
             if (!employeeToDelete) return;
             try {
-                const response = await fetch(${BASE_URL}/employees/${employeeToDelete.id}, { method: 'DELETE' });
+                const response = await fetch(`${BASE_URL}/employees/${employeeToDelete.id}`, { method: 'DELETE' });
                 if (response.ok) {
                     allEmployees = allEmployees.filter(emp => emp.id !== employeeToDelete.id);
                     filteredEmployees = filteredEmployees.filter(emp => emp.id !== employeeToDelete.id);
                     displayEmployees();
                     updateStatistics();
                     await loadExEmployees();
-                    alert(✅ Employee "${employeeToDelete.name}" moved to Ex-Employees archive!);
+                    alert(`✅ Employee "${employeeToDelete.name}" moved to Ex-Employees archive!`);
                     cancelDeleteFunction();
                 } else {
                     const error = await response.text();
-                    alert(❌ Failed to delete employee: ${error});
+                    alert(`❌ Failed to delete employee: ${error}`);
                 }
             } catch (error) {
                 console.error('Error deleting employee:', error);
@@ -252,7 +284,7 @@
             const exContainer = document.getElementById('exEmployeesContainer');
             const noExEmployeesState = document.getElementById('noExEmployeesState');
             exTableBody.innerHTML = '';
-            exContainer.style.display = 'block';
+            exContainer.style.display = exEmployees.length > 0 ? 'block' : 'none';
             noExEmployeesState.style.display = exEmployees.length === 0 ? 'block' : 'none';
             exEmployees.forEach(emp => {
                 const row = exTableBody.insertRow();
@@ -270,7 +302,7 @@
 
         async function loadExEmployees() {
             try {
-                const response = await fetch(${BASE_URL}/ex-employees);
+                const response = await fetch(`${BASE_URL}/ex-employees`);
                 if (response.ok) {
                     exEmployees = await response.json();
                     displayExEmployees();
@@ -281,39 +313,36 @@
             }
         }
 
-async function restoreEmployee(id, name) {
-    // Simple confirm popup only for restore
-    if (!confirm(`Are you sure you want to restore "${name}"?`)) return;
-
-    try {
-        const employeeToRestore = exEmployees.find(emp => emp.id === id);
-        if (!employeeToRestore) {
-            alert('❌ Employee not found in archive');
-            return;
+        async function restoreEmployee(id, name) {
+            if (!confirm(`Are you sure you want to restore "${name}"?`)) return;
+            try {
+                const employeeToRestore = exEmployees.find(emp => emp.id === id);
+                if (!employeeToRestore) {
+                    alert('❌ Employee not found in archive');
+                    return;
+                }
+                delete employeeToRestore.deletedDate;
+                const response = await fetch(`${BASE_URL}/employees`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(employeeToRestore)
+                });
+                if (response.ok) {
+                    await fetch(`${BASE_URL}/ex-employees/${id}`, { method: 'DELETE' });
+                    exEmployees = exEmployees.filter(emp => emp.id !== id);
+                    displayExEmployees();
+                    await loadEmployees();
+                    await loadExEmployees();
+                    alert(`✅ Employee "${name}" restored successfully!`);
+                } else {
+                    const error = await response.text();
+                    alert(`❌ Failed to restore employee: ${error}`);
+                }
+            } catch (error) {
+                console.error('Error restoring employee:', error);
+                alert('❌ Failed to restore employee. Please try again.');
+            }
         }
-        delete employeeToRestore.deletedDate;
-        const response = await fetch(`${BASE_URL}/employees`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(employeeToRestore)
-        });
-        if (response.ok) {
-            await fetch(`${BASE_URL}/ex-employees/${id}`, { method: 'DELETE' });
-            exEmployees = exEmployees.filter(emp => emp.id !== id);
-            displayExEmployees();
-            await loadEmployees();
-            await loadExEmployees();
-            alert(`✅ Employee "${name}" restored successfully!`);
-        } else {
-            const error = await response.text();
-            alert(`❌ Failed to restore employee: ${error}`);
-        }
-    } catch (error) {
-        console.error('Error restoring employee:', error);
-        alert('❌ Failed to restore employee. Please try again.');
-    }
-}
-
 
         function updateStatistics() {
             document.getElementById('totalEmployees').textContent = allEmployees.length;
