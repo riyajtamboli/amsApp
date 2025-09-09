@@ -4,7 +4,7 @@
     <title>View Employees - Attendance Management</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
@@ -121,12 +121,24 @@
     </div>
 
     <script>
-        // ✅ Fixed BASE_URL (removed /api)
         const BASE_URL = "https://amsapplication-production.up.railway.app";
         let allEmployees = [];
         let filteredEmployees = [];
         let exEmployees = [];
         let employeeToDelete = null;
+
+        // 🔹 Helper function with /api fallback
+        async function fetchWithFallback(endpoint, options = {}) {
+            try {
+                let res = await fetch(`${BASE_URL}/api${endpoint}`, options);
+                if (res.ok) return res;
+                console.warn("Fallback: trying without /api");
+                return await fetch(`${BASE_URL}${endpoint}`, options);
+            } catch (e) {
+                console.error("Both fetch attempts failed:", e);
+                throw e;
+            }
+        }
 
         window.addEventListener('load', function() {
             loadEmployees();
@@ -138,9 +150,10 @@
         async function loadEmployees() {
             showLoading();
             try {
-                const response = await fetch(`${BASE_URL}/employees`);
+                const response = await fetchWithFallback("/employees");
                 if (response.ok) {
                     allEmployees = await response.json();
+                    console.log("✅ Employees:", allEmployees);
                     filteredEmployees = [...allEmployees];
                     displayEmployees();
                     updateStatistics();
@@ -198,7 +211,7 @@
         async function confirmDelete() {
             if (!employeeToDelete) return;
             try {
-                const response = await fetch(`${BASE_URL}/employees/${employeeToDelete.id}`, { method: 'DELETE' });
+                const response = await fetchWithFallback(`/employees/${employeeToDelete.id}`, { method: 'DELETE' });
                 if (response.ok) {
                     allEmployees = allEmployees.filter(emp => emp.id !== employeeToDelete.id);
                     filteredEmployees = filteredEmployees.filter(emp => emp.id !== employeeToDelete.id);
@@ -263,9 +276,10 @@
 
         async function loadExEmployees() {
             try {
-                const response = await fetch(`${BASE_URL}/ex-employees`);
+                const response = await fetchWithFallback("/ex-employees");
                 if (response.ok) {
                     exEmployees = await response.json();
+                    console.log("✅ Ex-employees:", exEmployees);
                     displayExEmployees();
                     updateStatistics();
                 }
@@ -283,13 +297,13 @@
                     return;
                 }
                 delete employeeToRestore.deletedDate;
-                const response = await fetch(`${BASE_URL}/employees`, {
+                const response = await fetchWithFallback("/employees", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(employeeToRestore)
                 });
                 if (response.ok) {
-                    await fetch(`${BASE_URL}/ex-employees/${id}`, { method: 'DELETE' });
+                    await fetchWithFallback(`/ex-employees/${id}`, { method: 'DELETE' });
                     exEmployees = exEmployees.filter(emp => emp.id !== id);
                     displayExEmployees();
                     await loadEmployees();
