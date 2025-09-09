@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Records - Attendance Management System</title>
+    <link rel="stylesheet" href="modern-styles.css">
+    <style>
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .records-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .records-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+            font-weight: 500;
+        }
+        
+        .records-table tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .records-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .filter-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .filter-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .filter-group input,
+        .filter-group select {
+            padding: 12px 15px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+        
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-filter {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            margin-top: 20px;
+        }
+        
+        .btn-filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+            margin-top: 20px;
+            margin-left: 10px;
+        }
+        
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(108, 117, 125, 0.4);
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 250, 0.8));
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        }
+        
+        .summary-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .summary-label {
+            color: #666;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-present {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+        }
+        
+        .status-absent {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+        
+        .status-late {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+        
+        .no-records {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 1.2rem;
+        }
+        
+        .loading-records {
+            text-align: center;
+            padding: 50px;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+        
+        .records-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                min-width: 100%;
+            }
+            
+            .records-table {
+                font-size: 14px;
+            }
+            
+            .records-table th,
+            .records-table td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <!-- Navigation -->
+            <div class="navbar">
+                <a href="index.html">🏠 Home</a>
+                <a href="add-employee.html">👤 Add Employee</a>
+                <a href="view-employees.html">👥 View Employees</a>
+                <a href="attendance-records.html" class="active">📊 Records</a>
+                <a href="fingerprint-verify.html">✋ Verify</a>
+            </div>
+
+            <!-- Header -->
+            <div class="header">
+                <h1 class="gradient-text">📊 Attendance Records</h1>
+                <p>View and analyze employee attendance history</p>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="summary-number" id="totalRecords">0</div>
+                    <div class="summary-label">Total Records</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-number" id="presentToday">0</div>
+                    <div class="summary-label">Present Today</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-number" id="totalEmployees">0</div>
+                    <div class="summary-label">Total Employees</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-number" id="avgAttendance">0%</div>
+                    <div class="summary-label">Attendance Rate</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-section">
+                <h3>🔍 Filter Records</h3>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="employeeFilter">Employee</label>
+                        <select id="employeeFilter">
+                            <option value="">All Employees</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="dateFrom">From Date</label>
+                        <input type="date" id="dateFrom">
+                    </div>
+                    <div class="filter-group">
+                        <label for="dateTo">To Date</label>
+                        <input type="date" id="dateTo">
+                    </div>
+                    <div class="filter-group">
+                        <label for="statusFilter">Status</label>
+                        <select id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="PRESENT">Present</option>
+                            <option value="ABSENT">Absent</option>
+                            <option value="LATE">Late</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn-filter" onclick="applyFilters()">🔍 Apply Filters</button>
+                    <button class="btn-reset" onclick="resetFilters()">🔄 Reset</button>
+                    <button class="btn-filter" onclick="exportRecords()" style="margin-left: 20px;">📥 Export CSV</button>
+                </div>
+            </div>
+
+            <!-- Records Table -->
+            <div class="records-container">
+                <h3>📋 Attendance Records</h3>
+                <div id="loadingRecords" class="loading-records" style="display: none;">
+                    <div>⏳ Loading attendance records...</div>
+                </div>
+                <div id="recordsTableContainer">
+                    <table class="records-table" id="recordsTable">
+                        <thead>
+                            <tr>
+                                <th>📅 Date</th>
+                                <th>🕐 Time</th>
+                                <th>👤 Employee</th>
+                                <th>🔑 Fingerprint ID</th>
+                                <th>🏢 Department</th>
+                                <th>📊 Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody">
+                            <!-- Records will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noRecords" class="no-records" style="display: none;">
+                    <div>📋 No attendance records found</div>
+                    <p>Try adjusting your filters or add some attendance records first.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allRecords = [];
+        let filteredRecords = [];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            setDefaultDates();
+            loadEmployees();
+            loadAttendanceRecords();
+        });
+
+        // Set default date range (last 30 days)
+        function setDefaultDates() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+            document.getElementById('dateFrom').value = thirtyDaysAgo.toISOString().split('T')[0];
+        }
+
+        // Load employees for filter dropdown
+        async function loadEmployees() {
+            try {
+                const response = await fetch('/api/employees');
+                if (response.ok) {
+                    const employees = await response.json();
+                    const select = document.getElementById('employeeFilter');
+                    
+                    employees.forEach(employee => {
+                        const option = document.createElement('option');
+                        option.value = employee.id;
+                        option.textContent = `${employee.name} (${employee.fingerprintId})`;
+                        select.appendChild(option);
+                    });
+                    
+                    // Update total employees count
+                    document.getElementById('totalEmployees').textContent = employees.length;
+                }
+            } catch (error) {
+                console.error('Error loading employees:', error);
+            }
+        }
+
+        // Load attendance records
+        async function loadAttendanceRecords() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/api/attendance');
+                if (response.ok) {
+                    allRecords = await response.json();
+                    filteredRecords = [...allRecords];
+                    displayRecords();
+                    updateSummaryCards();
+                } else {
+                    throw new Error('Failed to load records');
+                }
+            } catch (error) {
+                console.error('Error loading attendance records:', error);
+                showNoRecords('Failed to load attendance records. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Display records in table
+        function displayRecords() {
+            const tbody = document.getElementById('recordsTableBody');
+            const noRecordsDiv = document.getElementById('noRecords');
+            const tableContainer = document.getElementById('recordsTableContainer');
+            
+            if (filteredRecords.length === 0) {
+                tableContainer.style.display = 'none';
+                noRecordsDiv.style.display = 'block';
+                return;
+            }
+            
+            tableContainer.style.display = 'block';
+            noRecordsDiv.style.display = 'none';
+            
+            tbody.innerHTML = '';
+            
+            // Sort records by date/time (newest first)
+            const sortedRecords = [...filteredRecords].sort((a, b) => 
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+            
+            sortedRecords.forEach(record => {
+                const row = document.createElement('tr');
+                const date = new Date(record.timestamp);
+                const status = determineStatus(date);
+                
+                row.innerHTML = `
+                    <td>${date.toLocaleDateString()}</td>
+                    <td>${date.toLocaleTimeString()}</td>
+                    <td>${record.employeeName || 'Unknown'}</td>
+                    <td>${record.fingerprintId || 'N/A'}</td>
+                    <td>${record.department || 'Not specified'}</td>
+                    <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Determine attendance status based on time
+        function determineStatus(date) {
+            const hour = date.getHours();
+            const minute = date.getMinutes();
+            const timeMinutes = hour * 60 + minute;
+            
+            // Consider 9:00 AM as start time
+            const startTime = 9 * 60; // 9:00 AM in minutes
+            const lateThreshold = startTime + 30; // 9:30 AM
+            
+            if (timeMinutes <= startTime) {
+                return 'PRESENT';
+            } else if (timeMinutes <= lateThreshold) {
+                return 'LATE';
+            } else {
+                return 'PRESENT'; // Still present, but very late
+            }
+        }
+
+        // Update summary cards
+        function updateSummaryCards() {
+            document.getElementById('totalRecords').textContent = filteredRecords.length;
+            
+            // Calculate today's attendance
+            const today = new Date().toDateString();
+            const todayRecords = filteredRecords.filter(record => 
+                new Date(record.timestamp).toDateString() === today
+            );
+            document.getElementById('presentToday').textContent = todayRecords.length;
+            
+            // Calculate attendance rate (simplified)
+            const totalEmployees = parseInt(document.getElementById('totalEmployees').textContent) || 1;
+            const attendanceRate = totalEmployees > 0 ? 
+                Math.round((todayRecords.length / totalEmployees) * 100) : 0;
+            document.getElementById('avgAttendance').textContent = `${attendanceRate}%`;
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const employeeId = document.getElementById('employeeFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const status = document.getElementById('statusFilter').value;
+            
+            filteredRecords = allRecords.filter(record => {
+                const recordDate = new Date(record.timestamp).toISOString().split('T')[0];
+                const recordStatus = determineStatus(new Date(record.timestamp));
+                
+                // Employee filter
+                if (employeeId && record.employeeId && record.employeeId.toString() !== employeeId) {
+                    return false;
+                }
+                
+                // Date range filter
+                if (dateFrom && recordDate < dateFrom) {
+                    return false;
+                }
+                if (dateTo && recordDate > dateTo) {
+                    return false;
+                }
+                
+                // Status filter
+                if (status && recordStatus !== status) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            displayRecords();
+            updateSummaryCards();
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById('employeeFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            setDefaultDates();
+            
+            filteredRecords = [...allRecords];
+            displayRecords();
+            updateSummaryCards();
+        }
+
+        // Export records to CSV
+        function exportRecords() {
+            if (filteredRecords.length === 0) {
+                alert('No records to export');
+                return;
+            }
+            
+            const headers = ['Date', 'Time', 'Employee', 'Fingerprint ID', 'Department', 'Status'];
+            const csvContent = [
+                headers.join(','),
+                ...filteredRecords.map(record => {
+                    const date = new Date(record.timestamp);
+                    const status = determineStatus(date);
+                    return [
+                        date.toLocaleDateString(),
+                        date.toLocaleTimeString(),
+                        `"${record.employeeName || 'Unknown'}"`,
+                        record.fingerprintId || 'N/A',
+                        `"${record.department || 'Not specified'}"`,
+                        status
+                    ].join(',');
+                })
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `attendance_records_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Show/hide loading state
+        function showLoading(show) {
+            document.getElementById('loadingRecords').style.display = show ? 'block' : 'none';
+            document.getElementById('recordsTableContainer').style.display = show ? 'none' : 'block';
+        }
+
+        // Show no records message
+        function showNoRecords(message) {
+            const noRecordsDiv = document.getElementById('noRecords');
+            noRecordsDiv.innerHTML = `
+                <div>📋 ${message}</div>
+                <p>Try refreshing the page or contact support if the problem persists.</p>
+            `;
+            noRecordsDiv.style.display = 'block';
+            document.getElementById('recordsTableContainer').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Employees - Attendance Management</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .navbar {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .navbar a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .navbar a:hover::before {
+            left: 100%;
+        }
+        .navbar a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .navbar a.active {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        /* Responsive navbar */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 15px;
+                gap: 8px;
+            }
+            .navbar a {
+                padding: 10px 16px;
+                font-size: 12px;
+                margin: 2px;
+            }
+        }
+        @media (max-width: 480px) {
+            .navbar {
+                flex-direction: column;
+                align-items: center;
+            }
+            .navbar a {
+                width: 200px;
+                text-align: center;
+                margin: 3px 0;
+            }
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #666;
+            font-size: 1.2rem;
+        }
+        .search-container {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .employee-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        .employee-table th {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .employee-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .employee-table tr:hover {
+            background: #f8f9fa;
+        }
+        .fingerprint-id {
+            font-family: 'Courier New', monospace;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-incomplete {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        .delete-btn:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+        .delete-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .confirm-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .confirm-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .confirm-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .confirm-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .confirm-yes {
+            background: #dc3545;
+            color: white;
+        }
+        .confirm-no {
+            background: #6c757d;
+            color: white;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+        .no-employees {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        .section-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 30px 0 20px 0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+        }
+        .ex-employees-section {
+            margin-top: 40px;
+        }
+        .ex-employee-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .ex-employee-table th {
+            background: #e9ecef;
+            color: #495057;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .ex-employee-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #dee2e6;
+            background: rgba(248, 249, 250, 0.7);
+        }
+        .ex-employee-table tr:hover {
+            background: rgba(220, 53, 69, 0.1);
+        }
+        .restore-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        .restore-btn:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+        .status-deleted {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <a href="index.html">🏠 Home</a>
+            <a href="add-employee.html">➕ Add Employee</a>
+            <a href="view-employees.html" class="active">👥 View Employees</a>
+            <a href="attendance-records.html">📊 Records</a>
+            <a href="fingerprint-verify.html">🔐 Verify Attendance</a>
+        </nav>
+
+        <!-- Header -->
+        <div class="header">
+            <h1>👥 Employee Directory</h1>
+            <p>View and manage all registered employees</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="totalEmployees">0</div>
+                <div class="stat-label">Total Employees</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeEmployees">0</div>
+                <div class="stat-label">Active Employees</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="exEmployees">0</div>
+                <div class="stat-label">🗃️ Ex Employees</div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search employees by name, email, or department...">
+            <button onclick="refreshEmployees()" style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer;">🔄 Refresh</button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            <div>⏳ Loading employees...</div>
+        </div>
+
+        <!-- Employee Table -->
+        <div id="tableContainer" class="table-container" style="display: none;">
+            <table class="employee-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>👤 Name</th>
+                        <th>🔑 Fingerprint ID</th>
+                        <th>📧 Email</th>
+                        <th>🏢 Department</th>
+                        <th>📊 Status</th>
+                        <th>🛠️ Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No Employees State -->
+        <div id="noEmployeesState" class="no-employees" style="display: none;">
+            <h3>👥 No Employees Found</h3>
+            <p>No employees have been registered yet.</p>
+            <a href="add-employee.html" style="color: #007bff; text-decoration: none; font-weight: bold;">➕ Add the first employee</a>
+        </div>
+
+        <!-- Ex-Employees Section -->
+        <div class="ex-employees-section">
+            <div class="section-header">
+                🗃️ Ex-Employees Archive
+            </div>
+            
+            <!-- Ex-Employees Table -->
+            <div id="exEmployeesContainer" class="table-container" style="display: none;">
+                <table class="ex-employee-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>👤 Name</th>
+                            <th>🔑 Fingerprint ID</th>
+                            <th>📧 Email</th>
+                            <th>🏢 Department</th>
+                            <th>📅 Deleted Date</th>
+                            <th>🛠️ Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exEmployeeTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- No Ex-Employees State -->
+            <div id="noExEmployeesState" class="no-employees" style="display: block;">
+                <h3>🗃️ No Ex-Employees</h3>
+                <p>No employees have been deleted yet.</p>
+            </div>
+        </div>
+
+        <!-- Back to Home -->
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #007bff; text-decoration: none;">← Back to Home</a>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div id="confirmDialog" class="confirm-dialog">
+        <div class="confirm-content">
+            <h3>⚠️ Confirm Deletion</h3>
+            <p id="confirmMessage">Are you sure you want to delete this employee?</p>
+        <div class="confirm-buttons">
+            <button class="confirm-btn confirm-yes" onclick="confirmDelete()">Yes, Delete</button>
+            <button class="confirm-btn confirm-no" onclick="cancelDeleteFunction()" type="button">Cancel</button>
+        </div>
+        </div>
+    </div>
+
+    <script>
+        let allEmployees = [];
+        let filteredEmployees = [];
+        let exEmployees = [];
+        let employeeToDelete = null;
+
+        // Load employees on page load
+        window.addEventListener('load', function() {
+            loadEmployees();
+            loadExEmployees();
+        });
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            filterEmployees();
+        });
+
+        async function loadEmployees() {
+            showLoading();
+
+            try {
+                const response = await fetch('http://localhost:8092/api/employees');
+
+                if (response.ok) {
+                    allEmployees = await response.json();
+                    console.log('Employees API response:', allEmployees);
+                    filteredEmployees = [...allEmployees];
+                    displayEmployees();
+                    updateStatistics();
+                    showTable();
+                } else {
+                    throw new Error('Failed to fetch employees');
+                }
+            } catch (error) {
+                console.error('Error loading employees:', error);
+                showNoEmployees();
+            }
+        }
+
+        function filterEmployees() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredEmployees = allEmployees.filter(emp =>
+                emp.name.toLowerCase().includes(searchTerm) ||
+                (emp.email && emp.email.toLowerCase().includes(searchTerm)) ||
+                (emp.department && emp.department.toLowerCase().includes(searchTerm)) ||
+                (emp.fingerprintId && emp.fingerprintId.toLowerCase().includes(searchTerm))
+            );
+
+            displayEmployees();
+            updateStatistics();
+        }
+
+        function displayEmployees() {
+            const tableBody = document.getElementById('employeeTableBody');
+            tableBody.innerHTML = '';
+            filteredEmployees.forEach(emp => {
+                const row = tableBody.insertRow();
+                const status = emp.fingerprintId ? 'Active' : 'Incomplete';
+                const statusClass = emp.fingerprintId ? 'status-active' : 'status-incomplete';
+                row.innerHTML = `
+                    <td><strong>#${emp.id}</strong></td>
+                    <td><strong>${emp.name}</strong></td>
+                    <td><span class="fingerprint-id">${emp.fingerprintId || 'Not Set'}</span></td>
+                    <td>${emp.email || 'Not provided'}</td>
+                    <td>${emp.department || 'Unassigned'}</td>
+                    <td><span class="status-badge ${statusClass}">${status}</span></td>
+                    <td><button class="delete-btn" onclick="deleteEmployee(${emp.id}, '${emp.name}')">🗑️ Delete</button></td>
+                `;
+            });
+        }
+
+        function deleteEmployee(id, name) {
+            employeeToDelete = { id, name };
+            document.getElementById('confirmMessage').textContent =
+                `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+            document.getElementById('confirmDialog').style.display = 'flex';
+        }
+
+        function cancelDeleteFunction() {
+            employeeToDelete = null;
+            const confirmDialog = document.getElementById('confirmDialog');
+            if (confirmDialog) {
+                confirmDialog.style.display = 'none';
+            }
+        }
+
+        async function confirmDelete() {
+            if (!employeeToDelete) return;
+
+            try {
+                const response = await fetch(`http://localhost:8092/api/employees/${employeeToDelete.id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    // Remove from local arrays
+                    allEmployees = allEmployees.filter(emp => emp.id !== employeeToDelete.id);
+                    filteredEmployees = filteredEmployees.filter(emp => emp.id !== employeeToDelete.id);
+                    // Refresh displays
+                    displayEmployees();
+                    updateStatistics();
+                    // Reload ex-employees from backend
+                    await loadExEmployees();
+                    // Show success message
+                    alert(`✅ Employee "${employeeToDelete.name}" moved to Ex-Employees archive!`);
+                    // Remove confirmation dialog from page
+                    const confirmDialog = document.getElementById('confirmDialog');
+                    if (confirmDialog) {
+                        confirmDialog.style.display = 'none';
+                        confirmDialog.remove();
+                    }
+                    employeeToDelete = null;
+                } else {
+                    const error = await response.text();
+                    alert(`❌ Failed to delete employee: ${error}`);
+                }
+            } catch (error) {
+                console.error('Error deleting employee:', error);
+                alert('❌ Network error occurred while deleting employee.');
+            }
+        }
+
+        // Fix for missing cancelDelete function error
+        function cancelDelete() {
+            employeeToDelete = null;
+            const confirmDialog = document.getElementById('confirmDialog');
+            if (confirmDialog) {
+                confirmDialog.style.display = 'none';
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+            document.getElementById('noEmployeesState').style.display = 'none';
+        }
+
+        function showTable() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'block';
+            document.getElementById('noEmployeesState').style.display = 'none';
+        }
+
+        function showNoEmployees() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'none';
+            document.getElementById('noEmployeesState').style.display = 'block';
+        }
+
+        function refreshEmployees() {
+            loadEmployees();
+            loadExEmployees();
+        }
+
+        // Ex-Employees Functions
+        function displayExEmployees() {
+            const exTableBody = document.getElementById('exEmployeeTableBody');
+            const exContainer = document.getElementById('exEmployeesContainer');
+            const noExEmployeesState = document.getElementById('noExEmployeesState');
+
+            exTableBody.innerHTML = '';
+
+            exContainer.style.display = 'block';
+            if (exEmployees.length === 0) {
+                noExEmployeesState.style.display = 'block';
+            } else {
+                noExEmployeesState.style.display = 'none';
+            }
+
+            exEmployees.forEach(emp => {
+                const row = exTableBody.insertRow();
+                row.innerHTML = `
+                    <td><strong>#${emp.id || ''}</strong></td>
+                    <td><strong>${emp.name || ''}</strong></td>
+                    <td><span class="fingerprint-id">${emp.fingerprintId || 'Not Set'}</span></td>
+                    <td>${emp.email || 'Not provided'}</td>
+                    <td>${emp.department || 'Unassigned'}</td>
+                    <td><span class="status-badge status-deleted">${emp.deletedDate || ''}</span></td>
+                    <td><button class="restore-btn" onclick="restoreEmployee(${emp.id}, '${emp.name}')">♻️ Restore</button></td>
+                `;
+            });
+        }
+
+        async function loadExEmployees() {
+            try {
+                const response = await fetch('http://localhost:8092/api/ex-employees');
+                if (response.ok) {
+                    exEmployees = await response.json();
+                    displayExEmployees();
+                    updateStatistics();
+                    // Debug log for exEmployees length and UI element
+                    console.log('exEmployees length:', exEmployees.length);
+                    const exCountElem = document.getElementById('exEmployees');
+                    if (exCountElem) {
+                        console.log('exEmployees UI count:', exCountElem.textContent);
+                    } else {
+                        console.warn('exEmployees UI element not found');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading ex-employees:', error);
+            }
+        }
+
+        async function restoreEmployee(id, name) {
+            console.log(`Attempting to restore employee id=${id}, name=${name}`);
+            if (!confirm(`Are you sure you want to restore "${name}"?`)) {
+                console.log('Restore cancelled by user');
+                return;
+            }
+
+            try {
+                // Find the employee in ex-employees
+                const employeeToRestore = exEmployees.find(emp => emp.id === id);
+                if (!employeeToRestore) {
+                    alert('❌ Employee not found in archive');
+                    console.error('Employee not found in exEmployees array');
+                    return;
+                }
+
+                // Remove deletion date
+                delete employeeToRestore.deletedDate;
+
+                // Create the employee again via API
+                console.log('Sending POST request to create employee:', employeeToRestore);
+                const response = await fetch('http://localhost:8092/api/employees', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: employeeToRestore.name,
+                        email: employeeToRestore.email,
+                        department: employeeToRestore.department,
+                        fingerprintId: employeeToRestore.fingerprintId
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('Employee created successfully, proceeding to delete from ex-employees');
+                    // Delete from ex-employees archive
+                    const deleteResponse = await fetch(`http://localhost:8092/api/ex-employees/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (!deleteResponse.ok) {
+                        const errorText = await deleteResponse.text();
+                        console.error('Failed to delete ex-employee:', errorText);
+                        alert('⚠️ Warning: Failed to remove employee from ex-employees archive. ' + errorText);
+                    } else {
+                        console.log('Ex-employee deleted successfully');
+                        // Remove from exEmployees array immediately
+                        exEmployees = exEmployees.filter(emp => emp.id !== id);
+                        displayExEmployees();
+                        // Refresh employees list
+                        await loadEmployees();
+                        // Refresh ex-employees list explicitly to update UI
+                        await loadExEmployees();
+                        alert(`✅ Employee "${name}" restored successfully!`);
+                        // Reload the page to ensure UI consistency
+                        window.location.reload();
+                    }
+                } else {
+                    const error = await response.text();
+                    console.error('Failed to create employee:', error);
+                    if (error.includes('already exists')) {
+                        alert(`⚠️ Employee "${name}" is already in the active employees list.`);
+                    } else {
+                        alert(`❌ Failed to restore employee: ${error}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error restoring employee:', error);
+                alert('❌ Failed to restore employee. Please try again.');
+            }
+        }
+
+        function updateStatistics() {
+            document.getElementById('totalEmployees').textContent = allEmployees.length;
+            document.getElementById('activeEmployees').textContent = allEmployees.filter(emp => emp.fingerprintId).length;
+            document.getElementById('exEmployees').textContent = exEmployees.length;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Check-In - Attendance System</title>
+    <link rel="stylesheet" href="modern-styles.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .client-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .client-header {
+            margin-bottom: 60px;
+        }
+
+        .company-logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        .client-title {
+            color: white;
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            letter-spacing: -1px;
+        }
+        
+        .client-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.4rem;
+            font-weight: 400;
+            margin-bottom: 10px;
+        }
+
+        .welcome-message {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .verify-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 50px 40px;
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .time-display {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 
+                0 8px 20px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        
+        .current-time {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 8px;
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .current-date {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .fingerprint-scanner {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 50px;
+            border-radius: 25px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(30, 60, 114, 0.3);
+        }
+        
+        .scanner-animation {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: scanner-sweep 2s infinite ease-in-out;
+        }
+        
+        @keyframes scanner-sweep {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
+        }
+        
+        .fingerprint-icon {
+            font-size: 5rem;
+            color: white;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+        
+        .scanner-text {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .input-section {
+            margin-bottom: 40px;
+        }
+        
+        .fingerprint-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 25px 30px;
+            border: 3px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 2rem;
+            text-align: center;
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+            letter-spacing: 4px;
+            font-weight: 700;
+            background: #ffffff;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            outline: none;
+            color: #1e3c72;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .fingerprint-input:focus {
+            border-color: #1e3c72;
+            box-shadow: 
+                0 0 0 6px rgba(30, 60, 114, 0.1),
+                0 15px 35px rgba(30, 60, 114, 0.2);
+            transform: translateY(-3px);
+        }
+        
+        .fingerprint-input::placeholder {
+            color: #94a3b8;
+            font-weight: 600;
+            letter-spacing: 3px;
+        }
+        
+        .verify-button {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 15px 30px rgba(40, 167, 69, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 10px 20px;
+            min-width: 200px;
+        }
+        
+        .verify-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(40, 167, 69, 0.4);
+        }
+        
+        .verify-button:active {
+            transform: translateY(1px);
+        }
+
+        .clear-button {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(108, 117, 125, 0.3);
+            margin: 0 10px;
+            min-width: 150px;
+        }
+        
+        .clear-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(108, 117, 125, 0.4);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .employee-details {
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .employee-details.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .employee-avatar {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+
+        .employee-name {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e3c72;
+            margin-bottom: 20px;
+        }
+
+        .employee-info {
+            margin-bottom: 30px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 10px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .info-value {
+            font-weight: 700;
+            color: #343a40;
+            font-size: 1.1rem;
+        }
+
+        .check-in-button {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 15px 30px rgba(0, 123, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 10px 20px;
+            min-width: 200px;
+        }
+
+        .check-in-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(0, 123, 255, 0.4);
+        }
+
+        .message-card {
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+            animation: slideIn 0.5s ease;
+        }
+
+        .success-card {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border: 2px solid #c3e6cb;
+            box-shadow: 0 10px 20px rgba(21, 87, 36, 0.1);
+        }
+
+        .error-card {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+            box-shadow: 0 10px 20px rgba(114, 28, 36, 0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .footer-info {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .client-container {
+                padding: 20px 15px;
+            }
+            
+            .verify-card {
+                padding: 30px 20px;
+                margin: 0 10px 20px;
+            }
+            
+            .client-title {
+                font-size: 2.5rem;
+            }
+            
+            .current-time {
+                font-size: 2.5rem;
+            }
+            
+            .fingerprint-icon {
+                font-size: 4rem;
+            }
+            
+            .fingerprint-input {
+                font-size: 1.8rem;
+                padding: 20px 25px;
+                letter-spacing: 3px;
+            }
+            
+            .verify-button, .check-in-button {
+                width: 100%;
+                max-width: 300px;
+                margin: 10px 0;
+            }
+            
+            .clear-button {
+                width: 100%;
+                max-width: 200px;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="client-container">
+        <!-- Header -->
+        <div class="client-header">
+            <div class="company-logo">🏢</div>
+            <h1 class="client-title">Employee Check-In</h1>
+            <p class="client-subtitle">Attendance Management System</p>
+            <p class="welcome-message">Please scan your fingerprint or enter your ID</p>
+        </div>
+
+        <!-- Main Verification Card -->
+        <div class="verify-card">
+            <!-- Time Display -->
+            <div class="time-display">
+                <div class="current-time" id="currentTime">--:--:--</div>
+                <div class="current-date" id="currentDate">Loading...</div>
+            </div>
+
+            <!-- Fingerprint Scanner -->
+            <div class="fingerprint-scanner">
+                <div class="scanner-animation"></div>
+                <div class="fingerprint-icon">👆</div>
+                <div class="scanner-text">Ready to scan fingerprint</div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="input-section">
+                <input type="text" 
+                       id="fingerprintInput" 
+                       class="fingerprint-input" 
+                       placeholder="FP001"
+                       maxlength="10"
+                       oninput="handleInput()"
+                       onkeypress="handleKeyPress(event)"
+                       autocomplete="off">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button id="verifyBtn" class="verify-button" onclick="verifyEmployee()">
+                    🔍 Verify & Check In
+                </button>
+                <br>
+                <button class="clear-button" onclick="clearAll()">
+                    🗑️ Clear
+                </button>
+            </div>
+
+            <!-- Employee Details -->
+            <div id="employeeDetails" class="employee-details" style="display: none;">
+                <div class="employee-avatar">👤</div>
+                <div class="employee-name" id="employeeName">Employee Name</div>
+                <div class="employee-info" id="employeeInfo">
+                    <!-- Details will be populated here -->
+                </div>
+                <div class="action-buttons">
+                    <button class="check-in-button" onclick="markAttendance()">
+                        ✅ Confirm Check-In
+                    </button>
+                    <br>
+                    <button class="clear-button" onclick="clearAll()">
+                        🔄 New Check-In
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div id="messageArea"></div>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="footer-info">
+            <p>🔒 Secure • 🚀 Fast • 📱 Easy to Use</p>
+            <p>For assistance, please contact your system administrator</p>
+        </div>
+    </div>
+
+    <script>
+        let currentEmployee = null;
+
+        // Update time display
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateString = now.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            document.getElementById('currentTime').textContent = timeString;
+            document.getElementById('currentDate').textContent = dateString;
+        }
+
+        // Initialize
+        setInterval(updateTime, 1000);
+        updateTime();
+        document.getElementById('fingerprintInput').focus();
+
+        // Handle input changes
+        function handleInput() {
+            const input = document.getElementById('fingerprintInput');
+            let value = input.value.trim().toUpperCase();
+            
+            // Auto-format input
+            if (value && !value.startsWith('FP')) {
+                value = 'FP' + value.replace(/[^0-9]/g, '');
+                input.value = value;
+            }
+            
+            clearMessages();
+            
+            // Auto-trigger verification when input looks complete
+            if (value.length >= 5) {
+                setTimeout(() => verifyEmployee(), 500);
+            }
+        }
+
+        // Handle Enter key
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                verifyEmployee();
+            }
+        }
+
+        // Verify employee and mark attendance in one step
+        async function verifyEmployee() {
+            const fingerprintId = document.getElementById('fingerprintInput').value.trim().toUpperCase();
+            
+            if (!fingerprintId) {
+                showMessage('Please enter your fingerprint ID', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('verifyBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '🔍 Verifying... <span class="loading-spinner"></span>';
+            btn.disabled = true;
+
+            try {
+                // First, lookup the employee
+                const response = await fetch(`/api/employees/fingerprint/${fingerprintId}`);
+                
+                if (response.ok) {
+                    const employee = await response.json();
+                    currentEmployee = employee;
+                    showEmployeeDetails(employee);
+                    
+                    // Automatically proceed to mark attendance
+                    setTimeout(() => markAttendance(), 1000);
+                    
+                } else if (response.status === 404) {
+                    showMessage(`❌ Employee not found with ID: ${fingerprintId}<br><br>Please check your ID or contact your administrator.`, 'error');
+                    hideEmployeeDetails();
+                } else {
+                    throw new Error('Server error occurred');
+                }
+            } catch (error) {
+                console.error('Error verifying employee:', error);
+                showMessage('❌ Unable to connect to server.<br><br>Please try again or contact support.', 'error');
+                hideEmployeeDetails();
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Show employee details
+        function showEmployeeDetails(employee) {
+            document.getElementById('employeeName').textContent = employee.name;
+            
+            const infoDiv = document.getElementById('employeeInfo');
+            infoDiv.innerHTML = `
+                <div class="info-row">
+                    <span class="info-label">🔑 ID:</span>
+                    <span class="info-value">${employee.fingerprintId}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📧 Email:</span>
+                    <span class="info-value">${employee.email}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🏢 Department:</span>
+                    <span class="info-value">${employee.department || 'Not specified'}</span>
+                </div>
+            `;
+            
+            const detailsDiv = document.getElementById('employeeDetails');
+            detailsDiv.style.display = 'block';
+            setTimeout(() => detailsDiv.classList.add('show'), 100);
+        }
+
+        // Hide employee details
+        function hideEmployeeDetails() {
+            const detailsDiv = document.getElementById('employeeDetails');
+            detailsDiv.classList.remove('show');
+            setTimeout(() => {
+                detailsDiv.style.display = 'none';
+                currentEmployee = null;
+            }, 500);
+        }
+
+        // Mark attendance
+        async function markAttendance() {
+            if (!currentEmployee) {
+                showMessage('No employee selected', 'error');
+                return;
+            }
+
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Checking In... <span class="loading-spinner"></span>';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/attendance/mark', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fingerprintId: currentEmployee.fingerprintId
+                    })
+                });
+
+                if (response.ok) {
+                    const currentTime = new Date().toLocaleString();
+                    showMessage(`✅ <strong>Welcome, ${currentEmployee.name}!</strong><br><br>🕐 Check-in successful at ${currentTime}<br><br>Have a great day! 😊`, 'success');
+                    
+                    // Auto-clear after 5 seconds for next employee
+                    setTimeout(() => clearAll(), 5000);
+                } else {
+                    const errorText = await response.text();
+                    if (errorText.includes('already marked')) {
+                        showMessage(`⚠️ <strong>${currentEmployee.name}</strong><br><br>You have already checked in today.<br><br>If this is an error, please contact your administrator.`, 'error');
+                    } else {
+                        throw new Error(errorText || 'Failed to mark attendance');
+                    }
+                }
+            } catch (error) {
+                console.error('Error marking attendance:', error);
+                showMessage('❌ Failed to check in.<br><br>Please try again or contact support.', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageArea = document.getElementById('messageArea');
+            const className = type === 'success' ? 'success-card' : 'error-card';
+            
+            messageArea.innerHTML = `
+                <div class="message-card ${className}">
+                    ${message}
+                </div>
+            `;
+            
+            // Auto-clear error messages after 8 seconds
+            if (type === 'error') {
+                setTimeout(clearMessages, 8000);
+            }
+        }
+
+        // Clear messages
+        function clearMessages() {
+            document.getElementById('messageArea').innerHTML = '';
+        }
+
+        // Clear all
+        function clearAll() {
+            document.getElementById('fingerprintInput').value = '';
+            hideEmployeeDetails();
+            clearMessages();
+            currentEmployee = null;
+            document.getElementById('fingerprintInput').focus();
+        }
+
+        // Auto-focus on load
+        window.addEventListener('load', () => {
+            document.getElementById('fingerprintInput').focus();
+        });
+
+        // Auto-focus when clicking anywhere on the page
+        document.addEventListener('click', () => {
+            if (!document.getElementById('fingerprintInput').matches(':focus')) {
+                document.getElementById('fingerprintInput').focus();
+            }
+        });
+
+        // Prevent form submission and auto-verify on Enter
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                verifyEmployee();
+            }
+        });
+    </script>
+</body>
+</html>
