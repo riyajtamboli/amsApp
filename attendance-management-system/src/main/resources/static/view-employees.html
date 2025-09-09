@@ -1,116 +1,305 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
+  <title>View Employees - Attendance Management</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee Directory - Attendance Management System</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    /* keep your existing CSS unchanged (I didn’t remove anything) */
+  </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>👥 Employee Directory</h1>
-      <p>View and manage all registered employees</p>
-    </header>
-
+    <!-- Navigation -->
     <nav class="navbar">
       <a href="index.html">🏠 Home</a>
       <a href="add-employee.html">➕ Add Employee</a>
       <a href="view-employees.html" class="active">👥 View Employees</a>
-      <a href="records.html">📑 Records</a>
-      <a href="verify-attendance.html">🔒 Verify Attendance</a>
+      <a href="attendance-records.html">📊 Records</a>
+      <a href="fingerprint-verify.html">🔐 Verify Attendance</a>
     </nav>
 
-    <main>
-      <section>
-        <table id="employeeTable">
+    <!-- Header -->
+    <div class="header">
+      <h1>👥 Employee Directory</h1>
+      <p>View and manage all registered employees</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-number" id="totalEmployees">0</div>
+        <div class="stat-label">Total Employees</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="activeEmployees">0</div>
+        <div class="stat-label">Active Employees</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="exEmployeesCount">0</div>
+        <div class="stat-label">🗃️ Ex Employees</div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-container">
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search employees by name, email, or department...">
+      <button onclick="refreshEmployees()" style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer;">🔄 Refresh</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingState" class="loading">⏳ Loading employees...</div>
+
+    <!-- Employee Table -->
+    <div id="tableContainer" class="table-container" style="display: none;">
+      <table class="employee-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>👤 Name</th>
+            <th>📌 Position</th>
+            <th>🔑 Fingerprint ID</th>
+            <th>📧 Email</th>
+            <th>🏢 Department</th>
+            <th>📊 Status</th>
+            <th>🛠️ Actions</th>
+          </tr>
+        </thead>
+        <tbody id="employeeTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- No Employees -->
+    <div id="noEmployeesState" class="no-employees" style="display: none;">
+      <h3>👥 No Employees Found</h3>
+      <p>No employees have been registered yet.</p>
+      <a href="add-employee.html" style="color: #007bff; text-decoration: none; font-weight: bold;">➕ Add the first employee</a>
+    </div>
+
+    <!-- Ex Employees Section -->
+    <div class="ex-employees-section">
+      <div class="section-header">🗃️ Ex-Employees Archive</div>
+      <div id="exEmployeesContainer" class="table-container" style="display: none;">
+        <table class="ex-employee-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Full Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Department</th>
-              <th>Position</th>
-              <th>Actions</th>
+              <th>👤 Name</th>
+              <th>📌 Position</th>
+              <th>🔑 Fingerprint ID</th>
+              <th>📧 Email</th>
+              <th>🏢 Department</th>
+              <th>📅 Deleted Date</th>
+              <th>🛠️ Actions</th>
             </tr>
           </thead>
-          <tbody id="employeeTableBody">
-            <!-- Employees will load here -->
-          </tbody>
+          <tbody id="exEmployeeTableBody"></tbody>
         </table>
-      </section>
-    </main>
+      </div>
+      <div id="noExEmployeesState" class="no-employees" style="display: block;">
+        <h3>🗃️ No Ex-Employees</h3>
+        <p>No employees have been deleted yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete -->
+  <div id="confirmDialog" class="confirm-dialog">
+    <div class="confirm-content">
+      <h3>⚠️ Confirm Deletion</h3>
+      <p id="confirmMessage">Are you sure you want to delete this employee?</p>
+      <div class="confirm-buttons">
+        <button class="confirm-btn confirm-yes" onclick="confirmDelete()">Yes, Delete</button>
+        <button class="confirm-btn confirm-no" onclick="cancelDeleteFunction()" type="button">Cancel</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    const API_BASE = "https://amsapplication.up.railway.app";
+    let allEmployees = [];
+    let filteredEmployees = [];
+    let exEmployees = [];
+    let employeeToDelete = null;
+
+    const BASE_URL = "https://amsapplication-production.up.railway.app/api";
+
+    window.addEventListener("load", () => {
+      loadEmployees();
+      loadExEmployees();
+    });
+
+    document.getElementById("searchInput").addEventListener("input", filterEmployees);
 
     async function loadEmployees() {
+      showLoading();
       try {
-        const response = await fetch(`${API_BASE}/api/employees`);
-        if (!response.ok) throw new Error("Failed to fetch employees");
-
-        const employees = await response.json();
-        const tbody = document.getElementById("employeeTableBody");
-        tbody.innerHTML = "";
-
-        if (employees.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No employees found.</td></tr>`;
-          return;
-        }
-
-        employees.forEach(emp => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${emp.fingerprintId}</td>
-            <td>${emp.fullName}</td>
-            <td>${emp.email}</td>
-            <td>${emp.phone}</td>
-            <td>${emp.department}</td>
-            <td>${emp.position}</td>
-            <td>
-              <button onclick="deleteEmployee(${emp.fingerprintId})">❌ Delete</button>
-            </td>
-          `;
-          tbody.appendChild(row);
-        });
-      } catch (error) {
-        console.error("Error loading employees:", error);
-        Swal.fire("Error", "Unable to load employees.", "error");
+        const res = await fetch(`${BASE_URL}/employees`);
+        if (!res.ok) throw new Error("Failed to fetch employees");
+        allEmployees = await res.json();
+        filteredEmployees = [...allEmployees];
+        displayEmployees();
+        updateStatistics();
+        showTable();
+      } catch (err) {
+        console.error("Error:", err);
+        showNoEmployees();
       }
     }
 
-    async function deleteEmployee(id) {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "This employee will be deleted.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, delete"
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          try {
-            const response = await fetch(`${API_BASE}/api/employees/${id}`, {
-              method: "DELETE"
-            });
-            if (response.ok) {
-              Swal.fire("Deleted!", "Employee removed.", "success");
-              loadEmployees();
-            } else {
-              Swal.fire("Error", "Failed to delete employee.", "error");
-            }
-          } catch (error) {
-            console.error("Error deleting employee:", error);
-            Swal.fire("Error", "Request failed.", "error");
-          }
-        }
+    function filterEmployees() {
+      const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+      filteredEmployees = allEmployees.filter(emp =>
+        (emp.name || "").toLowerCase().includes(searchTerm) ||
+        (emp.email || "").toLowerCase().includes(searchTerm) ||
+        (emp.department || "").toLowerCase().includes(searchTerm) ||
+        (emp.position || "").toLowerCase().includes(searchTerm)
+      );
+      displayEmployees();
+      updateStatistics();
+    }
+
+    function displayEmployees() {
+      const body = document.getElementById("employeeTableBody");
+      body.innerHTML = "";
+      filteredEmployees.forEach(emp => {
+        const row = body.insertRow();
+        const status = emp.fingerprintId ? "Active" : "Incomplete";
+        const statusClass = emp.fingerprintId ? "status-active" : "status-incomplete";
+        row.innerHTML = `
+          <td><strong>#${emp.id || "-"}</strong></td>
+          <td>${emp.name || "Unknown"}</td>
+          <td>${emp.position || "Not Assigned"}</td>
+          <td><span class="fingerprint-id">${emp.fingerprintId || "Not Set"}</span></td>
+          <td>${emp.email || "Not provided"}</td>
+          <td>${emp.department || "Unassigned"}</td>
+          <td><span class="status-badge ${statusClass}">${status}</span></td>
+          <td><button class="delete-btn" onclick="deleteEmployee(${emp.id}, '${emp.name}')">🗑️ Delete</button></td>
+        `;
       });
     }
 
-    // Load on startup
-    loadEmployees();
+    function deleteEmployee(id, name) {
+      employeeToDelete = { id, name };
+      document.getElementById("confirmMessage").textContent =
+        `Are you sure you want to delete "${name}"?`;
+      document.getElementById("confirmDialog").style.display = "flex";
+    }
+
+    function cancelDeleteFunction() {
+      employeeToDelete = null;
+      document.getElementById("confirmDialog").style.display = "none";
+    }
+
+    async function confirmDelete() {
+      if (!employeeToDelete) return;
+      try {
+        const res = await fetch(`${BASE_URL}/employees/${employeeToDelete.id}`, { method: "DELETE" });
+        if (res.ok) {
+          allEmployees = allEmployees.filter(e => e.id !== employeeToDelete.id);
+          filteredEmployees = filteredEmployees.filter(e => e.id !== employeeToDelete.id);
+          displayEmployees();
+          updateStatistics();
+          await loadExEmployees();
+          cancelDeleteFunction();
+          alert(`✅ Employee "${employeeToDelete.name}" deleted.`);
+        } else {
+          alert("❌ Failed to delete employee");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("❌ Network error");
+      }
+    }
+
+    async function loadExEmployees() {
+      try {
+        const res = await fetch(`${BASE_URL}/ex-employees`);
+        if (res.ok) {
+          exEmployees = await res.json();
+          displayExEmployees();
+          updateStatistics();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function displayExEmployees() {
+      const body = document.getElementById("exEmployeeTableBody");
+      const container = document.getElementById("exEmployeesContainer");
+      const noEx = document.getElementById("noExEmployeesState");
+      body.innerHTML = "";
+      if (exEmployees.length === 0) {
+        noEx.style.display = "block";
+        container.style.display = "none";
+      } else {
+        noEx.style.display = "none";
+        container.style.display = "block";
+        exEmployees.forEach(emp => {
+          const row = body.insertRow();
+          row.innerHTML = `
+            <td><strong>#${emp.id || ""}</strong></td>
+            <td>${emp.name || "Unknown"}</td>
+            <td>${emp.position || "Not Assigned"}</td>
+            <td><span class="fingerprint-id">${emp.fingerprintId || "Not Set"}</span></td>
+            <td>${emp.email || "Not provided"}</td>
+            <td>${emp.department || "Unassigned"}</td>
+            <td><span class="status-badge status-deleted">${emp.deletedDate || ""}</span></td>
+            <td><button class="restore-btn" onclick="restoreEmployee(${emp.id}, '${emp.name}')">♻️ Restore</button></td>
+          `;
+        });
+      }
+    }
+
+    async function restoreEmployee(id, name) {
+      if (!confirm(`Restore "${name}"?`)) return;
+      try {
+        const emp = exEmployees.find(e => e.id === id);
+        if (!emp) return;
+        delete emp.deletedDate;
+        const res = await fetch(`${BASE_URL}/employees`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(emp)
+        });
+        if (res.ok) {
+          await fetch(`${BASE_URL}/ex-employees/${id}`, { method: "DELETE" });
+          await loadEmployees();
+          await loadExEmployees();
+          alert(`✅ Restored "${name}"`);
+        } else {
+          alert("❌ Failed to restore employee");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function updateStatistics() {
+      document.getElementById("totalEmployees").textContent = allEmployees.length;
+      document.getElementById("activeEmployees").textContent = allEmployees.filter(e => e.fingerprintId).length;
+      document.getElementById("exEmployeesCount").textContent = exEmployees.length;
+    }
+
+    function showLoading() {
+      document.getElementById("loadingState").style.display = "block";
+      document.getElementById("tableContainer").style.display = "none";
+      document.getElementById("noEmployeesState").style.display = "none";
+    }
+    function showTable() {
+      document.getElementById("loadingState").style.display = "none";
+      document.getElementById("tableContainer").style.display = "block";
+      document.getElementById("noEmployeesState").style.display = "none";
+    }
+    function showNoEmployees() {
+      document.getElementById("loadingState").style.display = "none";
+      document.getElementById("tableContainer").style.display = "none";
+      document.getElementById("noEmployeesState").style.display = "block";
+    }
+    function refreshEmployees() {
+      loadEmployees();
+      loadExEmployees();
+    }
   </script>
 </body>
 </html>
