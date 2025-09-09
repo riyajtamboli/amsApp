@@ -122,7 +122,13 @@
 
     <script>
         // ✅ BASE_URL with /api
-        const BASE_URL = "https://amsapplication-production.up.railway.app/api";
+        //const BASE_URL = "https://amsapplication-production.up.railway.app/api";
+        // If frontend + backend are same Railway service
+        const BASE_URL = "/api";
+
+        // If backend is separate, replace with actual backend URL
+        // const BASE_URL = "https://amsapplication-production.up.railway.app/api";
+
         let allEmployees = [];
         let filteredEmployees = [];
         let exEmployees = [];
@@ -317,3 +323,4 @@
     </script>
 </body>
 </html>
+
