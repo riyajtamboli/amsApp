@@ -31,7 +31,6 @@
             gap: 10px;
             flex-wrap: wrap;
         }
-        
         .navbar a {
             color: white;
             text-decoration: none;
@@ -45,7 +44,6 @@
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
         .navbar a::before {
             content: '';
             position: absolute;
@@ -56,24 +54,19 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
             transition: left 0.5s;
         }
-        
         .navbar a:hover::before {
             left: 100%;
         }
-        
         .navbar a:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-        
         .navbar a.active {
             background: rgba(255, 255, 255, 0.25);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
-        
-        /* Responsive navbar */
         @media (max-width: 768px) {
             .navbar {
                 padding: 15px;
@@ -85,7 +78,6 @@
                 margin: 2px;
             }
         }
-        
         @media (max-width: 480px) {
             .navbar {
                 flex-direction: column;
@@ -240,12 +232,12 @@
         // Get next sequential fingerprint ID from backend
         async function getNextFingerprintId() {
             try {
-                const response = await fetch('http://localhost:8092/api/employees/next-fingerprint');
+                const response = await fetch('/api/employees/next-fingerprint');
                 if (response.ok) {
                     return await response.text();
                 } else {
                     // Fallback to manual calculation
-                    const employeesResponse = await fetch('http://localhost:8092/api/employees');
+                    const employeesResponse = await fetch('/api/employees');
                     if (employeesResponse.ok) {
                         const employees = await employeesResponse.json();
                         return `FP${String(employees.length + 1).padStart(3, '0')}`;
@@ -287,7 +279,7 @@
             document.getElementById('fingerprintDisplay').textContent = fingerprintId;
 
             try {
-                const response = await fetch('http://localhost:8092/api/employees', {
+                const response = await fetch('/api/employees', {
                     method: 'POST',
                     body: formData
                 });
