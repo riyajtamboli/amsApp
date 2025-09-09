@@ -1,245 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance Records</title>
-    <link rel="stylesheet" href="modern-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Records</title>
+  <link rel="stylesheet" href="modern-styles.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Navbar -->
-        <div class="navbar glass-card">
-            <a href="index.html">🏠 Home</a>
-            <a href="add-employee.html">➕ Add Employee</a>
-            <a href="view-employees.html">👥 View Employees</a>
-            <a href="attendance-records.html" class="active">📊 Records</a>
-            <a href="verify.html">✋ Verify</a>
-        </div>
-
-        <!-- Header -->
-        <div class="header">
-            <h1>📑 Attendance Records</h1>
-            <p>View and analyze employee attendance history</p>
-        </div>
-
-        <!-- Stats Section -->
-        <div class="stats-container">
-            <div class="stat-card">
-                <span class="stat-number" id="totalRecords">0</span>
-                <span class="stat-label">Total Records</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-number" id="presentToday">0</span>
-                <span class="stat-label">Present Today</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-number" id="totalEmployees">0</span>
-                <span class="stat-label">Total Employees</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-number" id="attendanceRate">0%</span>
-                <span class="stat-label">Attendance Rate</span>
-            </div>
-        </div>
-
-        <!-- Filter Section -->
-        <div class="form-section glass-card">
-            <h3>🔍 Filter Records</h3>
-            <div class="search-container">
-                <select id="employeeFilter" class="filter-select">
-                    <option value="">All Employees</option>
-                </select>
-                <input type="date" id="fromDate" class="filter-select">
-                <input type="date" id="toDate" class="filter-select">
-                <select id="statusFilter" class="filter-select">
-                    <option value="">All Status</option>
-                    <option value="PRESENT">Present</option>
-                    <option value="ABSENT">Absent</option>
-                </select>
-            </div>
-            <button class="btn" id="applyFilters">✨ Apply Filters</button>
-            <button class="btn btn-secondary" id="resetFilters">🔄 Reset</button>
-            <button class="btn btn-secondary" id="refreshData">♻ Refresh Data</button>
-            <button class="btn" id="exportCsv">📥 Export CSV</button>
-        </div>
-
-        <!-- Absent Employees Section -->
-        <div class="form-section glass-card" id="absentSection">
-            <h3>🚫 Absent Employees Today</h3>
-            <p id="absentCount">0 employees absent today</p>
-            <button class="btn btn-danger" id="exportAbsentCsv">📤 Export Absent CSV</button>
-            <div class="table-container">
-                <table class="table" id="absentTable">
-                    <thead>
-                        <tr>
-                            <th>Employee ID</th>
-                            <th>Name</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Attendance Records Table -->
-        <div class="form-section glass-card">
-            <h3>📅 Attendance Records</h3>
-            <div class="table-container">
-                <table class="table" id="recordsTable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Employee</th>
-                            <th>Fingerprint ID</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recordsBody"></tbody>
-                </table>
-            </div>
-        </div>
+  <div class="container">
+    <!-- Navbar -->
+    <div class="navbar glass-card">
+      <a href="index.html">🏠 Home</a>
+      <a href="add-employee.html">➕ Add Employee</a>
+      <a href="view-employees.html">👥 View Employees</a>
+      <a href="attendance-records.html" class="active">📊 Records</a>
+      <a href="verify.html">✋ Verify</a>
     </div>
 
-    <script>
-        const apiEmployees = "/api/employees";
-        const apiRecords = "/api/attendance/records";
+    <!-- Header -->
+    <div class="header">
+      <h1>📑 Attendance Records</h1>
+      <p>View and analyze employee attendance history</p>
+    </div>
 
-        async function fetchEmployees() {
-            const res = await fetch(apiEmployees);
-            return res.json();
-        }
+    <!-- Stats Section -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <span class="stat-number" id="totalRecords">0</span>
+        <span class="stat-label">Total Records</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="presentToday">0</span>
+        <span class="stat-label">Present Today</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="totalEmployees">0</span>
+        <span class="stat-label">Total Employees</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="attendanceRate">0%</span>
+        <span class="stat-label">Attendance Rate</span>
+      </div>
+    </div>
 
-        async function fetchRecords() {
-            const res = await fetch(apiRecords);
-            return res.json();
-        }
+    <!-- Filter Section -->
+    <div class="form-section glass-card">
+      <h3>🔍 Filter Records</h3>
+      <div class="search-container">
+        <select id="employeeFilter" class="filter-select">
+          <option value="">All Employees</option>
+        </select>
+        <input type="date" id="fromDate" class="filter-select">
+        <input type="date" id="toDate" class="filter-select">
+        <select id="statusFilter" class="filter-select">
+          <option value="">All Status</option>
+          <option value="PRESENT">Present</option>
+          <option value="ABSENT">Absent</option>
+        </select>
+      </div>
+      <div class="btn-group">
+        <button class="btn" id="applyFilters">✨ Apply Filters</button>
+        <button class="btn btn-secondary" id="resetFilters">🔄 Reset</button>
+        <button class="btn btn-secondary" id="refreshData">♻ Refresh Data</button>
+        <button class="btn" id="exportCsv">📥 Export CSV</button>
+      </div>
+    </div>
 
-        function renderStats(records, employees) {
-            const today = new Date().toISOString().split("T")[0];
-            const presentToday = records.filter(r => r.date === today && r.status === "PRESENT").length;
-            const totalEmployees = employees.length;
-            const rate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
+    <!-- Absent Employees Section -->
+    <div class="form-section glass-card" id="absentSection">
+      <h3>🚫 Absent Employees Today</h3>
+      <p id="absentCount">0 employees absent today</p>
+      <button class="btn btn-danger" id="exportAbsentCsv">📤 Export Absent CSV</button>
+      <div class="table-container">
+        <table class="table" id="absentTable">
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
 
-            document.getElementById("totalRecords").textContent = records.length;
-            document.getElementById("presentToday").textContent = presentToday;
-            document.getElementById("totalEmployees").textContent = totalEmployees;
-            document.getElementById("attendanceRate").textContent = rate + "%";
-        }
+    <!-- Attendance Records Table -->
+    <div class="form-section glass-card">
+      <h3>📅 Attendance Records</h3>
+      <div class="table-container">
+        <table class="table" id="recordsTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Employee</th>
+              <th>Fingerprint ID</th>
+              <th>Department</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-function renderAbsent(employees, records) {
-    const today = new Date().toISOString().split("T")[0];
-    const presentIds = records
-        .filter(r => r.date === today && r.status === "PRESENT")
-        .map(r => r.employeeId);
+  <script>
+    const apiEmployees = "/api/employees";
+    const apiRecords = "/api/attendance/records";
 
-    // FIX: use e.id instead of e.employeeId
-    const absent = employees.filter(e => !presentIds.includes(e.id));
+    async function fetchEmployees() {
+      const res = await fetch(apiEmployees);
+      return res.json();
+    }
 
-    document.getElementById("absentCount").textContent = `${absent.length} employees absent on ${today}`;
-    const tbody = document.querySelector("#absentTable tbody");
-    tbody.innerHTML = absent.map(e => `
+    async function fetchRecords() {
+      const res = await fetch(apiRecords);
+      return res.json();
+    }
+
+    function renderStats(records, employees) {
+      const today = new Date().toISOString().split("T")[0];
+      const presentToday = records.filter(r => r.date === today && r.status === "PRESENT").length;
+      const totalEmployees = employees.length;
+      const rate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
+
+      document.getElementById("totalRecords").textContent = records.length;
+      document.getElementById("presentToday").textContent = presentToday;
+      document.getElementById("totalEmployees").textContent = totalEmployees;
+      document.getElementById("attendanceRate").textContent = rate + "%";
+    }
+
+    function renderAbsent(employees, records) {
+      const today = new Date().toISOString().split("T")[0];
+      const presentIds = records.filter(r => r.date === today && r.status === "PRESENT").map(r => r.employeeId);
+
+      const absent = employees.filter(e => !presentIds.includes(e.id));
+
+      document.getElementById("absentCount").textContent = `${absent.length} employees absent on ${today}`;
+      const tbody = document.querySelector("#absentTable tbody");
+      tbody.innerHTML = absent.map(e => `
         <tr>
-            <td>${e.id}</td>
-            <td>${e.name}</td>
-            <td>${e.department}</td>
-            <td style="color:red;font-weight:bold">ABSENT</td>
+          <td>${e.id}</td>
+          <td>${e.name}</td>
+          <td>${e.department}</td>
+          <td style="color:red;font-weight:bold">ABSENT</td>
         </tr>`).join("");
-}
+    }
 
+    function renderRecords(records, employees) {
+      const tbody = document.getElementById("recordsBody");
+      tbody.innerHTML = records.map(r => {
+        const emp = employees.find(e => e.id === r.employeeId) || {};
+        return `
+          <tr>
+            <td>${r.date}</td>
+            <td>${r.time}</td>
+            <td>${emp.name || "Unknown"}</td>
+            <td>${r.employeeId}</td>
+            <td>${emp.department || "-"}</td>
+            <td style="font-weight:bold; color:${r.status === "PRESENT" ? "green" : "red"}">
+              ${r.status}
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
 
-        function renderRecords(records, employees) {
-            const tbody = document.getElementById("recordsBody");
-            tbody.innerHTML = records.map(r => {
-                const emp = employees.find(e => e.id === r.employeeId) || {};
-                return `
-                    <tr>
-                        <td>${r.date}</td>
-                        <td>${r.time}</td>
-                        <td>${emp.name || "Unknown"}</td>
-                        <td>${r.employeeId}</td>
-                        <td>${emp.department || "-"}</td>
-                        <td>${r.status}</td>
-                    </tr>
-                `;
-            }).join("");
-        }
+    function applyFilters(records) {
+      const empId = document.getElementById("employeeFilter").value;
+      const fromDate = document.getElementById("fromDate").value;
+      const toDate = document.getElementById("toDate").value;
+      const status = document.getElementById("statusFilter").value;
 
-        function applyFilters(records) {
-            const empId = document.getElementById("employeeFilter").value;
-            const fromDate = document.getElementById("fromDate").value;
-            const toDate = document.getElementById("toDate").value;
-            const status = document.getElementById("statusFilter").value;
+      return records.filter(r => {
+        return (!empId || r.employeeId === empId) &&
+               (!fromDate || r.date >= fromDate) &&
+               (!toDate || r.date <= toDate) &&
+               (!status || r.status === status);
+      });
+    }
 
-            return records.filter(r => {
-                return (!empId || r.employeeId === empId) &&
-                       (!fromDate || r.date >= fromDate) &&
-                       (!toDate || r.date <= toDate) &&
-                       (!status || r.status === status);
-            });
-        }
+    function exportCsvFile(data, filename) {
+      if (!data || data.length === 0) return;
+      let csv = Object.keys(data[0]).join(",") + "\n";
+      csv += data.map(row => Object.values(row).join(",")).join("\n");
 
-        function exportCsvFile(data, filename) {
-            let csv = Object.keys(data[0]).join(",") + "\n";
-            csv += data.map(row => Object.values(row).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+    }
 
-            const blob = new Blob([csv], { type: "text/csv" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            a.click();
-        }
+    async function loadData() {
+      const employees = await fetchEmployees();
+      const records = await fetchRecords();
 
-        async function loadData() {
-            const employees = await fetchEmployees();
-            const records = await fetchRecords();
+      // Populate employee filter
+      const empSelect = document.getElementById("employeeFilter");
+      empSelect.innerHTML = `<option value="">All Employees</option>` +
+          employees.map(e => `<option value="${e.id}">${e.name}</option>`).join("");
 
-            // Populate employee filter
-            const empSelect = document.getElementById("employeeFilter");
-            empSelect.innerHTML = `<option value="">All Employees</option>` +
-                employees.map(e => `<option value="${e.employeeId}">${e.name}</option>`).join("");
+      renderStats(records, employees);
+      renderAbsent(employees, records);
+      renderRecords(records, employees);
 
-            renderStats(records, employees);
-            renderAbsent(employees, records);
-            renderRecords(records, employees);
+      // Filters
+      document.getElementById("applyFilters").onclick = () => {
+        const filtered = applyFilters(records);
+        renderRecords(filtered, employees);
+      };
 
-            // Filters
-            document.getElementById("applyFilters").onclick = () => {
-                const filtered = applyFilters(records);
-                renderRecords(filtered, employees);
-            };
+      document.getElementById("resetFilters").onclick = () => {
+        document.getElementById("employeeFilter").value = "";
+        document.getElementById("fromDate").value = "";
+        document.getElementById("toDate").value = "";
+        document.getElementById("statusFilter").value = "";
+        renderRecords(records, employees);
+      };
 
-            document.getElementById("resetFilters").onclick = () => {
-                document.getElementById("employeeFilter").value = "";
-                document.getElementById("fromDate").value = "";
-                document.getElementById("toDate").value = "";
-                document.getElementById("statusFilter").value = "";
-                renderRecords(records, employees);
-            };
+      document.getElementById("refreshData").onclick = loadData;
 
-            document.getElementById("refreshData").onclick = loadData;
+      // Export CSV
+      document.getElementById("exportCsv").onclick = () => {
+        exportCsvFile(records, "attendance_records.csv");
+      };
 
-            // Export CSV
-            document.getElementById("exportCsv").onclick = () => {
-                exportCsvFile(records, "attendance_records.csv");
-            };
+      document.getElementById("exportAbsentCsv").onclick = () => {
+        const today = new Date().toISOString().split("T")[0];
+        const presentIds = records.filter(r => r.date === today && r.status === "PRESENT").map(r => r.employeeId);
+        const absent = employees.filter(e => !presentIds.includes(e.id));
+        exportCsvFile(absent, "absent_employees.csv");
+      };
+    }
 
-            document.getElementById("exportAbsentCsv").onclick = () => {
-                const today = new Date().toISOString().split("T")[0];
-                const presentIds = records.filter(r => r.date === today && r.status === "PRESENT").map(r => r.employeeId);
-                const absent = employees.filter(e => !presentIds.includes(e.employeeId));
-                exportCsvFile(absent, "absent_employees.csv");
-            };
-        }
-
-        loadData();
-    </script>
+    loadData();
+  </script>
 </body>
 </html>
-
-
