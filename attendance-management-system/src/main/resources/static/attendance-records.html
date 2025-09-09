@@ -155,7 +155,7 @@ function renderAbsent(employees, records) {
         function renderRecords(records, employees) {
             const tbody = document.getElementById("recordsBody");
             tbody.innerHTML = records.map(r => {
-                const emp = employees.find(e => e.employeeId === r.employeeId) || {};
+                const emp = employees.find(e => e.id === r.employeeId) || {};
                 return `
                     <tr>
                         <td>${r.date}</td>
@@ -241,4 +241,5 @@ function renderAbsent(employees, records) {
     </script>
 </body>
 </html>
+
 
