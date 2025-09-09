@@ -1,183 +1,325 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Employee Directory</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-  <style>
-    body {
-      background: linear-gradient(135deg, #8360c3, #2ebf91);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .container {
-      margin-top: 40px;
-      max-width: 1000px;
-      background: #fff;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-    }
-    h2 {
-      font-weight: bold;
-      color: #333;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    table {
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    thead {
-      background: #007bff;
-      color: white;
-      text-transform: uppercase;
-    }
-    .btn-danger {
-      background-color: #e63946;
-      border: none;
-    }
-    .btn-danger:hover {
-      background-color: #c1121f;
-    }
-    .btn-success {
-      background-color: #06d6a0;
-      border: none;
-    }
-    .btn-success:hover {
-      background-color: #04b383;
-    }
-    .badge {
-      padding: 8px 12px;
-      border-radius: 20px;
-    }
-    .badge-success { background-color: #4caf50; }
-    .badge-secondary { background-color: #f44336; }
-  </style>
+    <title>View Employees - Attendance Management</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h2>👨‍💼 Employee Directory</h2>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <a href="index.html">🏠 Home</a>
+            <a href="add-employee.html">➕ Add Employee</a>
+            <a href="view-employees.html" class="active">👥 View Employees</a>
+            <a href="attendance-records.html">📊 Records</a>
+            <a href="fingerprint-verify.html">🔐 Verify Attendance</a>
+        </nav>
 
-    <!-- Employees Table -->
-    <h4>Active Employees</h4>
-    <table class="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th>ID</th><th>Name</th><th>Fingerprint ID</th><th>Email</th><th>Department</th><th>Status</th><th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="employeeTableBody"></tbody>
-    </table>
+        <!-- Header -->
+        <div class="header">
+            <h1>👥 Employee Directory</h1>
+            <p>View and manage all registered employees</p>
+        </div>
 
-    <!-- Ex-Employees Table -->
-    <h4 class="mt-4">📦 Ex-Employees Archive</h4>
-    <table class="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th>ID</th><th>Name</th><th>Fingerprint ID</th><th>Email</th><th>Department</th><th>Deleted Date</th><th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="exEmployeeTableBody"></tbody>
-    </table>
-  </div>
+        <!-- Statistics -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="totalEmployees">0</div>
+                <div class="stat-label">Total Employees</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeEmployees">0</div>
+                <div class="stat-label">Active Employees</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="exEmployees">0</div>
+                <div class="stat-label">🗃 Ex Employees</div>
+            </div>
+        </div>
 
-  <script>
-    const BASE_URL = "/api"; // since frontend + backend are same service
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search employees by name, email, or department...">
+            <button onclick="refreshEmployees()" style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer;">🔄 Refresh</button>
+        </div>
 
-    async function loadEmployees() {
-      try {
-        const res = await fetch(`${BASE_URL}/employees`);
-        const data = await res.json();
-        const tbody = document.getElementById("employeeTableBody");
-        tbody.innerHTML = "";
-        data.forEach(emp => {
-          tbody.innerHTML += `
-            <tr>
-              <td>#${emp.id}</td>
-              <td><b>${emp.name}</b></td>
-              <td>${emp.fingerprintId || "-"}</td>
-              <td>${emp.email || "-"}</td>
-              <td>${emp.department || "-"}</td>
-              <td><span class="badge badge-success">ACTIVE</span></td>
-              <td>
-                <button class="btn btn-sm btn-danger" onclick="confirmDelete(${emp.id})">🗑 Delete</button>
-              </td>
-            </tr>
-          `;
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            <div>⏳ Loading employees...</div>
+        </div>
+
+        <!-- Employee Table -->
+        <div id="tableContainer" class="table-container" style="display: none;">
+            <table class="employee-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>👤 Name</th>
+                        <th>🔑 Fingerprint ID</th>
+                        <th>📧 Email</th>
+                        <th>🏢 Department</th>
+                        <th>📊 Status</th>
+                        <th>🛠 Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- No Employees State -->
+        <div id="noEmployeesState" class="no-employees" style="display: none;">
+            <h3>👥 No Employees Found</h3>
+            <p>No employees have been registered yet.</p>
+            <a href="add-employee.html" style="color: #007bff; text-decoration: none; font-weight: bold;">➕ Add the first employee</a>
+        </div>
+
+        <!-- Ex-Employees Section -->
+       <!-- Ex-Employees Section -->
+<div class="ex-employees-section">
+    <div class="section-header">🗃 Ex-Employees Archive</div>
+
+    <div id="exEmployeesContainer" class="table-container" style="display: none;">
+        <table class="employee-table"> <!-- 🔥 use same class as active table -->
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>👤 Name</th>
+                    <th>🔑 Fingerprint ID</th>
+                    <th>📧 Email</th>
+                    <th>🏢 Department</th>
+                    <th>📅 Deleted Date</th>
+                    <th>🛠 Actions</th>
+                </tr>
+            </thead>
+            <tbody id="exEmployeeTableBody"></tbody>
+        </table>
+    </div>
+
+    <div id="noExEmployeesState" class="no-employees" style="display: none;">
+        <h3>🗃 No Ex-Employees</h3>
+        <p>No employees have been deleted yet.</p>
+    </div>
+</div>
+
+        <!-- Back to Home -->
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="index.html" style="color: #007bff; text-decoration: none;">← Back to Home</a>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div id="confirmDialog" class="confirm-dialog">
+        <div class="confirm-content">
+            <h3>⚠ Confirm Deletion</h3>
+            <p id="confirmMessage">Are you sure you want to delete this employee?</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-yes" onclick="confirmDelete()">Yes, Delete</button>
+                <button class="confirm-btn confirm-no" onclick="cancelDeleteFunction()" type="button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ✅ BASE_URL with /api
+        //const BASE_URL = "https://amsapplication-production.up.railway.app/api";
+        // If frontend + backend are same Railway service
+        const BASE_URL = "/api";
+
+        // If backend is separate, replace with actual backend URL
+        // const BASE_URL = "https://amsapplication-production.up.railway.app/api";
+
+        let allEmployees = [];
+        let filteredEmployees = [];
+        let exEmployees = [];
+        let employeeToDelete = null;
+
+        window.addEventListener('load', function() {
+            loadEmployees();
+            loadExEmployees();
         });
-      } catch (err) {
-        console.error("Error loading employees:", err);
-      }
-    }
 
-    async function loadExEmployees() {
-      try {
-        const res = await fetch(`${BASE_URL}/ex-employees`);
-        const data = await res.json();
-        const tbody = document.getElementById("exEmployeeTableBody");
-        tbody.innerHTML = "";
-        data.forEach(emp => {
-          tbody.innerHTML += `
-            <tr>
-              <td>#${emp.id}</td>
-              <td><b>${emp.name}</b></td>
-              <td>${emp.fingerprintId || "-"}</td>
-              <td>${emp.email || "-"}</td>
-              <td>${emp.department || "-"}</td>
-              <td><span class="badge badge-secondary">${emp.deletedDate}</span></td>
-              <td>
-                <button class="btn btn-sm btn-success" onclick="restoreExEmployee(${emp.id})">♻ Restore</button>
-              </td>
-            </tr>
-          `;
+        document.getElementById('searchInput').addEventListener('input', filterEmployees);
+
+        async function loadEmployees() {
+            showLoading();
+            try {
+                const response = await fetch(${BASE_URL}/employees);
+                if (response.ok) {
+                    allEmployees = await response.json();
+                    filteredEmployees = [...allEmployees];
+                    displayEmployees();
+                    updateStatistics();
+                    showTable();
+                } else throw new Error('Failed to fetch employees');
+            } catch (error) {
+                console.error('Error loading employees:', error);
+                showNoEmployees();
+            }
+        }
+
+        function filterEmployees() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            filteredEmployees = allEmployees.filter(emp =>
+                emp.name.toLowerCase().includes(searchTerm) ||
+                (emp.email && emp.email.toLowerCase().includes(searchTerm)) ||
+                (emp.department && emp.department.toLowerCase().includes(searchTerm)) ||
+                (emp.fingerprintId && emp.fingerprintId.toLowerCase().includes(searchTerm))
+            );
+            displayEmployees();
+            updateStatistics();
+        }
+
+        function displayEmployees() {
+            const tableBody = document.getElementById('employeeTableBody');
+            tableBody.innerHTML = '';
+            filteredEmployees.forEach(emp => {
+                const status = emp.fingerprintId ? 'Active' : 'Incomplete';
+                const statusClass = emp.fingerprintId ? 'status-active' : 'status-incomplete';
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td><strong>#${emp.id}</strong></td>
+                    <td><strong>${emp.name}</strong></td>
+                    <td><span class="fingerprint-id">${emp.fingerprintId || 'Not Set'}</span></td>
+                    <td>${emp.email || 'Not provided'}</td>
+                    <td>${emp.department || 'Unassigned'}</td>
+                    <td><span class="status-badge ${statusClass}">${status}</span></td>
+                    <td><button class="delete-btn" onclick="deleteEmployee(${emp.id}, '${emp.name}')">🗑 Delete</button></td>
+                `;
+            });
+        }
+
+        function deleteEmployee(id, name) {
+            employeeToDelete = { id, name };
+            document.getElementById('confirmMessage').textContent =
+                Are you sure you want to delete "${name}"? This action cannot be undone.;
+            document.getElementById('confirmDialog').style.display = 'flex';
+        }
+
+        function cancelDeleteFunction() {
+            employeeToDelete = null;
+            document.getElementById('confirmDialog').style.display = 'none';
+        }
+
+        async function confirmDelete() {
+            if (!employeeToDelete) return;
+            try {
+                const response = await fetch(${BASE_URL}/employees/${employeeToDelete.id}, { method: 'DELETE' });
+                if (response.ok) {
+                    allEmployees = allEmployees.filter(emp => emp.id !== employeeToDelete.id);
+                    filteredEmployees = filteredEmployees.filter(emp => emp.id !== employeeToDelete.id);
+                    displayEmployees();
+                    updateStatistics();
+                    await loadExEmployees();
+                    alert(✅ Employee "${employeeToDelete.name}" moved to Ex-Employees archive!);
+                    cancelDeleteFunction();
+                } else {
+                    const error = await response.text();
+                    alert(❌ Failed to delete employee: ${error});
+                }
+            } catch (error) {
+                console.error('Error deleting employee:', error);
+                alert('❌ Network error occurred while deleting employee.');
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+            document.getElementById('noEmployeesState').style.display = 'none';
+        }
+
+        function showTable() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'block';
+            document.getElementById('noEmployeesState').style.display = 'none';
+        }
+
+        function showNoEmployees() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'none';
+            document.getElementById('noEmployeesState').style.display = 'block';
+        }
+
+        function refreshEmployees() {
+            loadEmployees();
+            loadExEmployees();
+        }
+
+        function displayExEmployees() {
+            const exTableBody = document.getElementById('exEmployeeTableBody');
+            const exContainer = document.getElementById('exEmployeesContainer');
+            const noExEmployeesState = document.getElementById('noExEmployeesState');
+            exTableBody.innerHTML = '';
+            exContainer.style.display = 'block';
+            noExEmployeesState.style.display = exEmployees.length === 0 ? 'block' : 'none';
+            exEmployees.forEach(emp => {
+                const row = exTableBody.insertRow();
+                row.innerHTML = `
+                    <td><strong>#${emp.id || ''}</strong></td>
+                    <td><strong>${emp.name || ''}</strong></td>
+                    <td><span class="fingerprint-id">${emp.fingerprintId || 'Not Set'}</span></td>
+                    <td>${emp.email || 'Not provided'}</td>
+                    <td>${emp.department || 'Unassigned'}</td>
+                    <td><span class="status-badge status-deleted">${emp.deletedDate || ''}</span></td>
+                    <td><button class="restore-btn" onclick="restoreEmployee(${emp.id}, '${emp.name}')">♻ Restore</button></td>
+                `;
+            });
+        }
+
+        async function loadExEmployees() {
+            try {
+                const response = await fetch(${BASE_URL}/ex-employees);
+                if (response.ok) {
+                    exEmployees = await response.json();
+                    displayExEmployees();
+                    updateStatistics();
+                }
+            } catch (error) {
+                console.error('Error loading ex-employees:', error);
+            }
+        }
+
+async function restoreEmployee(id, name) {
+    // Simple confirm popup only for restore
+    if (!confirm(`Are you sure you want to restore "${name}"?`)) return;
+
+    try {
+        const employeeToRestore = exEmployees.find(emp => emp.id === id);
+        if (!employeeToRestore) {
+            alert('❌ Employee not found in archive');
+            return;
+        }
+        delete employeeToRestore.deletedDate;
+        const response = await fetch(`${BASE_URL}/employees`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(employeeToRestore)
         });
-      } catch (err) {
-        console.error("Error loading ex-employees:", err);
-      }
-    }
-
-    function confirmDelete(id) {
-      if (confirm("⚠ Are you sure you want to delete this employee?")) {
-        deleteEmployee(id);
-      }
-    }
-
-    async function deleteEmployee(id) {
-      try {
-        const res = await fetch(`${BASE_URL}/employees/${id}`, { method: "DELETE" });
-        if (res.ok) {
-          alert("Employee deleted & archived ✅");
-          loadEmployees();
-          loadExEmployees();
+        if (response.ok) {
+            await fetch(`${BASE_URL}/ex-employees/${id}`, { method: 'DELETE' });
+            exEmployees = exEmployees.filter(emp => emp.id !== id);
+            displayExEmployees();
+            await loadEmployees();
+            await loadExEmployees();
+            alert(`✅ Employee "${name}" restored successfully!`);
         } else {
-          const msg = await res.text();
-          alert("Error: " + msg);
+            const error = await response.text();
+            alert(`❌ Failed to restore employee: ${error}`);
         }
-      } catch (err) {
-        alert("Error deleting employee: " + err);
-      }
+    } catch (error) {
+        console.error('Error restoring employee:', error);
+        alert('❌ Failed to restore employee. Please try again.');
     }
+}
 
-    async function restoreExEmployee(id) {
-      if (!confirm("♻ Do you want to restore this ex-employee?")) return;
-      try {
-        const res = await fetch(`${BASE_URL}/ex-employees/${id}`, { method: "DELETE" });
-        if (res.ok) {
-          alert("Employee restored ✅");
-          loadEmployees();
-          loadExEmployees();
-        } else {
-          const msg = await res.text();
-          alert("Error: " + msg);
+
+        function updateStatistics() {
+            document.getElementById('totalEmployees').textContent = allEmployees.length;
+            document.getElementById('activeEmployees').textContent = allEmployees.filter(emp => emp.fingerprintId).length;
+            document.getElementById('exEmployees').textContent = exEmployees.length;
         }
-      } catch (err) {
-        alert("Error restoring ex-employee: " + err);
-      }
-    }
-
-    // Load on start
-    loadEmployees();
-    loadExEmployees();
-  </script>
+    </script>
 </body>
 </html>
