@@ -14,11 +14,13 @@ async function fetchRecords(params = {}) {
   const query = new URLSearchParams(params).toString();
   if (query) url += "?" + query;
 
+  console.log("Fetching records from:", url);
+
   const res = await fetch(url);
   return res.json();
 }
 
-// ========================= Existing Functions =========================
+// ========================= Render Functions =========================
 
 // Stats
 function renderStats(records, employees) {
@@ -97,10 +99,13 @@ function exportCsvFile(data, filename) {
   a.click();
 }
 
-// Main Loader
+// ========================= Main Loader =========================
 async function loadData(params = {}) {
   const employees = await fetchEmployees();
   const records = await fetchRecords(params);
+
+  console.log("Loaded employees:", employees.length);
+  console.log("Loaded records:", records.length);
 
   // Populate employee filter dropdown once
   const empSelect = document.getElementById("employeeFilter");
@@ -121,6 +126,8 @@ async function loadData(params = {}) {
     const toDate = document.getElementById("toDate").value;
     const status = document.getElementById("statusFilter").value;
 
+    console.log("Applying filters:", { empId, fromDate, toDate, status });
+
     const params = {};
     if (fromDate) params.dateFrom = fromDate;
     if (toDate) params.dateTo = toDate;
@@ -133,11 +140,14 @@ async function loadData(params = {}) {
       (!status || r.status === status)
     );
 
+    console.log("Filtered records:", filtered.length);
+
     renderRecords(filtered, employees);
     renderAbsent(employees, filtered);
   };
 
   document.getElementById("resetFilters").onclick = async () => {
+    console.log("Resetting filters...");
     document.getElementById("employeeFilter").value = "";
     document.getElementById("fromDate").value = "";
     document.getElementById("toDate").value = "";
