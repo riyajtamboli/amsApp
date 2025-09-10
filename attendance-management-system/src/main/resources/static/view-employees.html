@@ -313,36 +313,28 @@
             }
         }
 
-        async function restoreEmployee(id, name) {
-            if (!confirm(`Are you sure you want to restore "${name}"?`)) return;
-            try {
-                const employeeToRestore = exEmployees.find(emp => emp.id === id);
-                if (!employeeToRestore) {
-                    alert('❌ Employee not found in archive');
-                    return;
-                }
-                delete employeeToRestore.deletedDate;
-                const response = await fetch(`${BASE_URL}/employees`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(employeeToRestore)
-                });
-                if (response.ok) {
-                    await fetch(`${BASE_URL}/ex-employees/${id}`, { method: 'DELETE' });
-                    exEmployees = exEmployees.filter(emp => emp.id !== id);
-                    displayExEmployees();
-                    await loadEmployees();
-                    await loadExEmployees();
-                    alert(`✅ Employee "${name}" restored successfully!`);
-                } else {
-                    const error = await response.text();
-                    alert(`❌ Failed to restore employee: ${error}`);
-                }
-            } catch (error) {
-                console.error('Error restoring employee:', error);
-                alert('❌ Failed to restore employee. Please try again.');
+        function restoreEmployee(id) {
+    if (confirm("Are you sure you want to restore this employee?")) {
+        fetch(`/api/ex-employees/restore/${id}`, {
+            method: "POST"
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => { throw new Error(text) });
             }
-        }
+            return response.text();
+        })
+        .then(data => {
+            alert("✅ " + data);
+            location.reload();
+        })
+        .catch(error => {
+            console.error("Error restoring employee:", error);
+            alert("❌ Failed to restore employee: " + error.message);
+        });
+    }
+}
+
 
         function updateStatistics() {
             document.getElementById('totalEmployees').textContent = allEmployees.length;
@@ -352,3 +344,4 @@
     </script>
 </body>
 </html>
+
