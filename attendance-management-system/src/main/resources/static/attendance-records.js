@@ -1,27 +1,34 @@
-// API Endpoints
+// ================= API Endpoints =================
 const apiEmployees = "/api/employees";
 const apiRecords = "/api/attendance/records";
 
-// Fetch Employees
+// ================= Fetch Functions =================
 async function fetchEmployees() {
-  const res = await fetch(apiEmployees);
-  return res.json();
+  try {
+    const res = await fetch(apiEmployees);
+    if (!res.ok) throw new Error("Failed to fetch employees");
+    return await res.json();
+  } catch (err) {
+    console.error("❌ Employee fetch error:", err);
+    return [];
+  }
 }
 
-// Fetch Attendance Records
 async function fetchRecords() {
-  const res = await fetch(apiRecords);
-  return res.json();
+  try {
+    const res = await fetch(apiRecords);
+    if (!res.ok) throw new Error("Failed to fetch records");
+    return await res.json();
+  } catch (err) {
+    console.error("❌ Records fetch error:", err);
+    return [];
+  }
 }
 
-// ========================= Render Functions =========================
-
+// ================= Render Stats =================
 function renderStats(records, employees) {
   const today = new Date().toISOString().split("T")[0];
-  const presentToday = records.filter(
-    r => r.date === today && r.status === "PRESENT"
-  ).length;
-
+  const presentToday = records.filter(r => r.date === today && r.status === "PRESENT").length;
   const totalEmployees = employees.length;
   const rate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
 
@@ -31,6 +38,7 @@ function renderStats(records, employees) {
   document.getElementById("attendanceRate").textContent = rate + "%";
 }
 
+// ================= Render Absent =================
 function renderAbsent(employees, records) {
   const today = new Date().toISOString().split("T")[0];
   const presentIds = records
@@ -46,18 +54,19 @@ function renderAbsent(employees, records) {
   tbody.innerHTML = absent
     .map(
       e => `
-        <tr>
-          <td>${e.id}</td>
-          <td>${e.name}</td>
-          <td>${e.department}</td>
-          <td style="color:red;font-weight:bold">ABSENT</td>
-        </tr>`
+      <tr>
+        <td>${e.id}</td>
+        <td>${e.name}</td>
+        <td>${e.department}</td>
+        <td style="color:red;font-weight:bold">ABSENT</td>
+      </tr>`
     )
     .join("");
 
   return absent;
 }
 
+// ================= Render Records =================
 function renderRecords(records, employees) {
   const tbody = document.getElementById("recordsBody");
   tbody.innerHTML = records
@@ -70,21 +79,23 @@ function renderRecords(records, employees) {
           <td>${emp.name || "Unknown"}</td>
           <td>${r.employeeId}</td>
           <td>${emp.department || "-"}</td>
-          <td style="font-weight:bold; color:${r.status === "PRESENT" ? "green" : "red"}">
-            ${r.status}
-          </td>
-        </tr>`;
+          <td style="font-weight:bold; color:${
+            r.status === "PRESENT" ? "green" : "red"
+          }">${r.status}</td>
+        </tr>
+      `;
     })
     .join("");
 }
 
+// ================= Apply Filters =================
 function applyFilters(records) {
   const empId = document.getElementById("employeeFilter").value;
   const fromDate = document.getElementById("fromDate").value;
   const toDate = document.getElementById("toDate").value;
   const status = document.getElementById("statusFilter").value;
 
-  return records.filter(r => {
+  const filtered = records.filter(r => {
     return (
       (!empId || r.employeeId == empId) &&
       (!fromDate || r.date >= fromDate) &&
@@ -92,10 +103,24 @@ function applyFilters(records) {
       (!status || r.status === status)
     );
   });
+
+  console.log("✅ Filter Applied:", {
+    empId,
+    fromDate,
+    toDate,
+    status,
+    resultCount: filtered.length
+  });
+
+  return filtered;
 }
 
+// ================= Export CSV =================
 function exportCsvFile(data, filename) {
-  if (!data || data.length === 0) return;
+  if (!data || data.length === 0) {
+    alert("⚠️ No data to export.");
+    return;
+  }
   let csv = Object.keys(data[0]).join(",") + "\n";
   csv += data.map(row => Object.values(row).join(",")).join("\n");
 
@@ -107,9 +132,9 @@ function exportCsvFile(data, filename) {
   a.click();
 }
 
-// ========================= Load Data =========================
-
+// ================= Load Data =================
 async function loadData() {
+  console.log("🔄 Loading data...");
   const employees = await fetchEmployees();
   const records = await fetchRecords();
 
@@ -119,32 +144,36 @@ async function loadData() {
     `<option value="">All Employees</option>` +
     employees.map(e => `<option value="${e.id}">${e.name}</option>`).join("");
 
-  // Initial render
   renderStats(records, employees);
-  const absentList = renderAbsent(employees, records);
+  let absentList = renderAbsent(employees, records);
   renderRecords(records, employees);
 
-  // Filters
+  // ✅ Attach Filter Logic
   document.getElementById("applyFilters").onclick = () => {
+    console.log("📌 Apply Filters button clicked");
     const filtered = applyFilters(records);
-    renderRecords(filtered, employees); // ✅ only records change
+    renderRecords(filtered, employees);
+    renderAbsent(employees, records); // always today
   };
 
   document.getElementById("resetFilters").onclick = () => {
+    console.log("🔄 Reset Filters clicked");
     document.getElementById("employeeFilter").value = "";
     document.getElementById("fromDate").value = "";
     document.getElementById("toDate").value = "";
     document.getElementById("statusFilter").value = "";
     renderRecords(records, employees);
+    absentList = renderAbsent(employees, records);
   };
 
   document.getElementById("refreshData").onclick = loadData;
 
-  // Export CSV
+  // Export All Records
   document.getElementById("exportCsv").onclick = () => {
     exportCsvFile(records, "attendance_records.csv");
   };
 
+  // Export Absent Only
   document.getElementById("exportAbsentCsv").onclick = () => {
     const absentData = absentList.map(e => ({
       id: e.id,
@@ -156,4 +185,6 @@ async function loadData() {
   };
 }
 
+// ================= Run =================
 loadData();
+
