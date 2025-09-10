@@ -121,10 +121,12 @@ async function loadData() {
 
   // Filters
   document.getElementById("applyFilters").onclick = () => {
-    const filtered = applyFilters(records);
-    renderRecords(filtered, employees);   // ✅ Attendance table
-    absentList = renderAbsent(employees, filtered); // ✅ Absent section
-  };
+  const filtered = applyFilters(records);
+  renderRecords(filtered, employees);   
+  // ❌ don't override absent here
+  renderAbsent(employees, records);  // ✅ always based on today
+};
+
 
   document.getElementById("resetFilters").onclick = () => {
     document.getElementById("employeeFilter").value = "";
