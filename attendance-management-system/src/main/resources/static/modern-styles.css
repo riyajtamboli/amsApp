@@ -9,10 +9,11 @@
 }
 
 body {
-  background: #f4f6f9;
+  background: #e9f2fb;   /* light blue */
   color: #333;
   line-height: 1.6;
 }
+
 
 /* Container */
 .container {
@@ -182,3 +183,4 @@ body {
 .table th {
   background: #f4f4f4;
 }
+
