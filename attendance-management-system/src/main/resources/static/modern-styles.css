@@ -854,3 +854,30 @@ body {
 }
 
 
+/* Absent Employees Header Layout */
+.absent-header {
+  display: flex;
+  justify-content: space-between; /* title left, button right */
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Export Absent CSV button */
+.export-btn-box {
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #dc3545, #a71d2a); /* gradient red */
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.export-btn-box:hover {
+  background: linear-gradient(135deg, #a71d2a, #7b1b20);
+  transform: translateY(-2px);
+}
+
