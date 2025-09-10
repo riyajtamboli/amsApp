@@ -39,24 +39,18 @@ function renderStats(records, employees) {
   document.getElementById("attendanceRate").textContent = rate + "%";
 }
 
-// Absent
-function renderAbsent(employees, records, filterMode = false) {
+// Absent (always today's absentees)
+function renderAbsent(employees, records) {
   const today = new Date().toISOString().split("T")[0];
 
-  const targetDate = filterMode ? null : today;
-
   const presentFps = records
-    .filter(r =>
-      (!targetDate || r.date === targetDate) &&
-      (r.status?.toUpperCase() === "PRESENT")
-    )
+    .filter(r => r.date === today && (r.status?.toUpperCase() === "PRESENT"))
     .map(r => r.fingerprintId || r.employee?.fingerprintId);
 
   const absent = employees.filter(e => !presentFps.includes(e.fingerprintId));
 
-  document.getElementById("absentCount").textContent = filterMode
-    ? `${absent.length} employees absent in filtered data`
-    : `${absent.length} employees absent on ${today}`;
+  document.getElementById("absentCount").textContent =
+    `${absent.length} employees absent on ${today}`;
 
   const tbody = document.querySelector("#absentTable tbody");
   tbody.innerHTML = absent
@@ -74,7 +68,7 @@ function renderAbsent(employees, records, filterMode = false) {
   return absent;
 }
 
-// Records Table
+// Records Table (filtered data)
 function renderRecords(records, employees) {
   const tbody = document.getElementById("recordsBody");
   tbody.innerHTML = records
@@ -93,7 +87,7 @@ function renderRecords(records, employees) {
           <td style="font-weight:bold; color:${
             (r.status?.toUpperCase() === "PRESENT") ? "green" : "red"
           }">
-            ${r.status || "-"}
+            ${r.status || (r.checkIn ? "PRESENT" : "ABSENT")}
           </td>
         </tr>
       `;
@@ -105,7 +99,7 @@ function renderRecords(records, employees) {
 function exportCsvFile(data, filename) {
   if (!data || data.length === 0) return;
   let csv = Object.keys(data[0]).join(",") + "\n";
-  csv += data.map(row => Object.values(row).join(",")).join("\n");
+  csv += data.map(row => Object.values(row).join(",")).join("\n";
 
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
@@ -136,11 +130,16 @@ async function loadData(params = {}) {
         .join("");
   }
 
+  // ✅ Always show today's absentees
+  renderAbsent(employees, records);
+
+  // ✅ Stats
   renderStats(records, employees);
-  let absentList = renderAbsent(employees, records);
+
+  // ✅ Default load all records
   renderRecords(records, employees);
 
-  // Filters
+  // ----------------- Filters -----------------
   document.getElementById("applyFilters").onclick = async () => {
     const empId = document.getElementById("employeeFilter").value;
     const fromDate = document.getElementById("fromDate").value;
@@ -155,27 +154,22 @@ async function loadData(params = {}) {
 
     let filtered = await fetchRecords(params);
 
-    // ✅ Normalize case + compute status dynamically
     filtered = filtered.filter(r => {
       const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
-      const statusComputed = r.checkIn ? "PRESENT" : "ABSENT";
+      const statusComputed = r.status
+        ? r.status.toUpperCase()
+        : (r.checkIn ? "PRESENT" : "ABSENT");
 
       return (
         (!empId || recordEmpId === empId) &&
-        (!status || statusComputed.toUpperCase() === status.toUpperCase())
+        (!status || status === "All" || statusComputed === status.toUpperCase())
       );
     });
 
     console.log("Filtered records:", filtered);
 
-    // ✅ If empId is selected, restrict employee list
-    const filteredEmployees = empId
-      ? employees.filter(e => e.fingerprintId === empId)
-      : employees;
-
-    // ✅ Re-render with filtered employees only
+    // ✅ Only update bottom attendance table
     renderRecords(filtered, employees);
-    absentList = renderAbsent(filteredEmployees, filtered, true);
   };
 
   document.getElementById("resetFilters").onclick = async () => {
@@ -195,12 +189,21 @@ async function loadData(params = {}) {
   };
 
   document.getElementById("exportAbsentCsv").onclick = () => {
-    const absentData = absentList.map(e => ({
-      fingerprintId: e.fingerprintId,
-      name: e.name,
-      department: e.department,
-      status: "ABSENT"
-    }));
+    // ✅ Always export today's absentees
+    const today = new Date().toISOString().split("T")[0];
+    const presentFps = records
+      .filter(r => r.date === today && (r.status?.toUpperCase() === "PRESENT"))
+      .map(r => r.fingerprintId || r.employee?.fingerprintId);
+
+    const absentData = employees
+      .filter(e => !presentFps.includes(e.fingerprintId))
+      .map(e => ({
+        fingerprintId: e.fingerprintId,
+        name: e.name,
+        department: e.department,
+        status: "ABSENT"
+      }));
+
     exportCsvFile(absentData, "absent_employees.csv");
   };
 }
