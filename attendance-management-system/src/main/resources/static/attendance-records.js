@@ -14,11 +14,14 @@ async function fetchRecords() {
   return res.json();
 }
 
-// ========================= Existing Functions =========================
+// ========================= Render Functions =========================
 
 function renderStats(records, employees) {
   const today = new Date().toISOString().split("T")[0];
-  const presentToday = records.filter(r => r.date === today && r.status === "PRESENT").length;
+  const presentToday = records.filter(
+    r => r.date === today && r.status === "PRESENT"
+  ).length;
+
   const totalEmployees = employees.length;
   const rate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
 
@@ -33,20 +36,22 @@ function renderAbsent(employees, records) {
   const presentIds = records
     .filter(r => r.date === today && r.status === "PRESENT")
     .map(r => r.employeeId);
+
   const absent = employees.filter(e => !presentIds.includes(e.id));
 
   document.getElementById("absentCount").textContent =
     `${absent.length} employees absent on ${today}`;
+
   const tbody = document.querySelector("#absentTable tbody");
   tbody.innerHTML = absent
     .map(
       e => `
-    <tr>
-      <td>${e.id}</td>
-      <td>${e.name}</td>
-      <td>${e.department}</td>
-      <td style="color:red;font-weight:bold">ABSENT</td>
-    </tr>`
+        <tr>
+          <td>${e.id}</td>
+          <td>${e.name}</td>
+          <td>${e.department}</td>
+          <td style="color:red;font-weight:bold">ABSENT</td>
+        </tr>`
     )
     .join("");
 
@@ -59,19 +64,16 @@ function renderRecords(records, employees) {
     .map(r => {
       const emp = employees.find(e => e.id === r.employeeId) || {};
       return `
-      <tr>
-        <td>${r.date}</td>
-        <td>${r.time}</td>
-        <td>${emp.name || "Unknown"}</td>
-        <td>${r.employeeId}</td>
-        <td>${emp.department || "-"}</td>
-        <td style="font-weight:bold; color:${
-          r.status === "PRESENT" ? "green" : "red"
-        }">
-          ${r.status}
-        </td>
-      </tr>
-    `;
+        <tr>
+          <td>${r.date}</td>
+          <td>${r.time}</td>
+          <td>${emp.name || "Unknown"}</td>
+          <td>${r.employeeId}</td>
+          <td>${emp.department || "-"}</td>
+          <td style="font-weight:bold; color:${r.status === "PRESENT" ? "green" : "red"}">
+            ${r.status}
+          </td>
+        </tr>`;
     })
     .join("");
 }
@@ -105,28 +107,28 @@ function exportCsvFile(data, filename) {
   a.click();
 }
 
+// ========================= Load Data =========================
+
 async function loadData() {
   const employees = await fetchEmployees();
   const records = await fetchRecords();
 
-  // Populate employee filter
+  // Populate employee filter dropdown
   const empSelect = document.getElementById("employeeFilter");
   empSelect.innerHTML =
     `<option value="">All Employees</option>` +
     employees.map(e => `<option value="${e.id}">${e.name}</option>`).join("");
 
+  // Initial render
   renderStats(records, employees);
-  let absentList = renderAbsent(employees, records);
+  const absentList = renderAbsent(employees, records);
   renderRecords(records, employees);
 
   // Filters
   document.getElementById("applyFilters").onclick = () => {
-  const filtered = applyFilters(records);
-  renderRecords(filtered, employees);   
-  // ❌ don't override absent here
-  renderAbsent(employees, records);  // ✅ always based on today
-};
-
+    const filtered = applyFilters(records);
+    renderRecords(filtered, employees); // ✅ only records change
+  };
 
   document.getElementById("resetFilters").onclick = () => {
     document.getElementById("employeeFilter").value = "";
@@ -134,7 +136,6 @@ async function loadData() {
     document.getElementById("toDate").value = "";
     document.getElementById("statusFilter").value = "";
     renderRecords(records, employees);
-    absentList = renderAbsent(employees, records);
   };
 
   document.getElementById("refreshData").onclick = loadData;
