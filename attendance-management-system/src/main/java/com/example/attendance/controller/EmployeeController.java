@@ -26,10 +26,10 @@ public class EmployeeController {
     // POST - Add employee
     @PostMapping(value = "/employees", consumes = { "multipart/form-data" })
     public ResponseEntity<?> addEmployee(@RequestParam("name") String name,
-            @RequestParam(value = "fingerprintId", required = false) String fingerprintId,
-            @RequestParam(value = "email", required = false) String email,
-            @RequestParam(value = "department", required = false) String department,
-            @RequestParam("phone") String phone) {
+                                         @RequestParam(value = "fingerprintId", required = false) String fingerprintId,
+                                         @RequestParam(value = "email", required = false) String email,
+                                         @RequestParam(value = "department", required = false) String department,
+                                         @RequestParam("phone") String phone) {
         try {
             // Check for duplicate fingerprintId
             if (fingerprintId != null && employeeRepository.findByFingerprintId(fingerprintId) != null) {
@@ -52,7 +52,7 @@ public class EmployeeController {
             Employee savedEmployee = employeeRepository.save(employee);
             return ResponseEntity.ok(savedEmployee);
         } catch (Exception e) {
-            e.printStackTrace(); // Add this line to print the stack trace for debugging
+            e.printStackTrace();
             return ResponseEntity.status(500).body("Error saving employee: " + e.getMessage());
         }
     }
@@ -145,5 +145,45 @@ public class EmployeeController {
             System.out.println("Error deleting ex-employee: " + e.getMessage());
             return ResponseEntity.badRequest().body("Error deleting ex-employee: " + e.getMessage());
         }
+    }
+
+    // ✅ Restore ex-employee back to active employees
+    @PostMapping("/ex-employees/restore/{id}")
+    @Transactional
+    public ResponseEntity<?> restoreExEmployee(@PathVariable Long id) {
+        ExEmployee exEmployee = exEmployeeRepository.findById(id).orElse(null);
+        if (exEmployee == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Check for duplicate fingerprintId
+        if (exEmployee.getFingerprintId() != null &&
+            employeeRepository.findByFingerprintId(exEmployee.getFingerprintId()) != null) {
+            return ResponseEntity.badRequest()
+                    .body("Cannot restore. FingerprintId already exists in active employees.");
+        }
+
+        // Check for duplicate email
+        if (exEmployee.getEmail() != null &&
+            employeeRepository.findAll().stream()
+                    .anyMatch(e -> e.getEmail() != null && e.getEmail().equals(exEmployee.getEmail()))) {
+            return ResponseEntity.badRequest()
+                    .body("Cannot restore. Email already exists in active employees.");
+        }
+
+        // Move back to employees
+        Employee restored = new Employee();
+        restored.setName(exEmployee.getName());
+        restored.setEmail(exEmployee.getEmail());
+        restored.setPhone(exEmployee.getPhone());
+        restored.setDepartment(exEmployee.getDepartment());
+        restored.setFingerprintId(exEmployee.getFingerprintId());
+
+        employeeRepository.save(restored);
+
+        // Remove from ex-employees
+        exEmployeeRepository.deleteById(id);
+
+        return ResponseEntity.ok("Employee restored successfully");
     }
 }
