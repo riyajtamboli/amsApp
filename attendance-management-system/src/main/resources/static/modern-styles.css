@@ -611,3 +611,24 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
+/* Absent Employees Header Layout */
+.absent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Square Box for Export Button */
+.export-box {
+  background: #fff5f5;
+  border: 2px solid #e74c3c;
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.export-box .btn-danger {
+  margin: 0;
+}
