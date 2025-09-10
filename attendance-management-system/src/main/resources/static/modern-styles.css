@@ -183,4 +183,24 @@ body {
 .table th {
   background: #f4f4f4;
 }
+/* Background Gradient for all pages */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #6a11cb, #2575fc); /* purple → blue */
+  min-height: 100vh;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Glass card effect for sections */
+.glass-card, 
+.form-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
 
