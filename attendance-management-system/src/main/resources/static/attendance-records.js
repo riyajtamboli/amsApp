@@ -1,324 +1,106 @@
-// API Endpoints
-const apiEmployees = "/api/employees";
-const apiRecords = "/api/attendance/records";
+document.addEventListener("DOMContentLoaded", () => {
+  const recordsBody = document.getElementById("recordsBody");
+  const employeeFilter = document.getElementById("employeeFilter");
+  const fromDate = document.getElementById("fromDate");
+  const toDate = document.getElementById("toDate");
+  const statusFilter = document.getElementById("statusFilter");
 
-// Fetch Employees
-async function fetchEmployees() {
-  const res = await fetch(apiEmployees);
-  return res.json();
-}
+  const applyFiltersBtn = document.getElementById("applyFilters");
+  const resetFiltersBtn = document.getElementById("resetFilters");
+  const refreshBtn = document.getElementById("refreshData");
 
-// Fetch Attendance Records
-async function fetchRecords() {
-  const res = await fetch(apiRecords);
-  return res.json();
-}
+  // Load employees into dropdown
+  async function loadEmployees() {
+    try {
+      let res = await fetch("/api/employees");
+      let employees = await res.json();
+      employees.forEach(emp => {
+        let option = document.createElement("option");
+        option.value = emp.fingerprintId;
+        option.textContent = `${emp.name} (${emp.fingerprintId})`;
+        employeeFilter.appendChild(option);
+      });
+    } catch (err) {
+      console.error("Error loading employees:", err);
+    }
+  }
 
-// ========================= Existing Functions =========================
+  // Fetch attendance records from backend
+  async function fetchRecords() {
+    let url = "/api/attendance/records";
+    if (fromDate.value && toDate.value) {
+      url += `?dateFrom=${fromDate.value}&dateTo=${toDate.value}`;
+    } else if (fromDate.value) {
+      url += `?dateFrom=${fromDate.value}`;
+    }
 
-// Stats
-function renderStats(records, employees) {
-  const today = new Date().toISOString().split("T")[0];
-  const presentToday = records.filter(r => r.date === today && r.status === "PRESENT").length;
-  const totalEmployees = employees.length;
-  const rate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
+    console.log("Fetching records from:", url);
 
-  document.getElementById("totalRecords").textContent = records.length;
-  document.getElementById("presentToday").textContent = presentToday;
-  document.getElementById("totalEmployees").textContent = totalEmployees;
-  document.getElementById("attendanceRate").textContent = rate + "%";
-}
+    try {
+      let res = await fetch(url);
+      let records = await res.json();
+      console.log("Raw records from backend:", records);
+      return records;
+    } catch (err) {
+      console.error("Error fetching records:", err);
+      return [];
+    }
+  }
 
-// Absent
-function renderAbsent(employees, records) {
-  const today = new Date().toISOString().split("T")[0];
-  const presentFps = records
-    .filter(r => r.date === today && r.status === "PRESENT")
-    .map(r => r.fingerprintId);
+  // Render records into table
+  function renderRecords(records) {
+    recordsBody.innerHTML = "";
 
-  const absent = employees.filter(e => !presentFps.includes(e.fingerprintId));
+    if (!records || records.length === 0) {
+      recordsBody.innerHTML = `<tr><td colspan="6">No records found</td></tr>`;
+      return;
+    }
 
-  document.getElementById("absentCount").textContent =
-    `${absent.length} employees absent on ${today}`;
-
-  const tbody = document.querySelector("#absentTable tbody");
-  tbody.innerHTML = absent
-    .map(
-      e => `
-      <tr>
-        <td>${e.fingerprintId}</td>
-        <td>${e.name}</td>
-        <td>${e.department || "-"}</td>
-        <td style="color:red;font-weight:bold">ABSENT</td>
-      </tr>`
-    )
-    .join("");
-
-  return absent;
-}
-
-// Records Table
-function renderRecords(records, employees) {
-  const tbody = document.getElementById("recordsBody");
-  tbody.innerHTML = records
-    .map(r => {
-      const emp = employees.find(e => e.fingerprintId === r.fingerprintId) || {};
-      return `
-        <tr>
-          <td>${r.date}</td>
-          <td>${r.time}</td>
-          <td>${emp.name || "Unknown"}</td>
-          <td>${r.fingerprintId}</td>
-          <td>${emp.department || "-"}</td>
-          <td style="font-weight:bold; color:${r.status === "PRESENT" ? "green" : "red"}">
-            ${r.status}
-          </td>
-        </tr>
+    records.forEach(r => {
+      let tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.date || "-"}</td>
+        <td>${r.checkIn || "-"}</td>
+        <td>${r.employeeName || "-"}</td>
+        <td>${r.fingerprintId || "-"}</td>
+        <td>${r.department || "-"}</td>
+        <td>${r.status || "-"}</td>
       `;
-    })
-    .join("");
-}
+      recordsBody.appendChild(tr);
+    });
+  }
 
-// Filters
-function applyFilters(records) {
-  const empId = document.getElementById("employeeFilter").value;
-  const fromDate = document.getElementById("fromDate").value;
-  const toDate = document.getElementById("toDate").value;
-  const status = document.getElementById("statusFilter").value;
+  // Apply filters (frontend filtering after backend fetch)
+  async function applyFilters() {
+    let records = await fetchRecords();
 
-  return records.filter(r => {
-    return (
-      (!empId || r.fingerprintId === empId) &&
-      (!fromDate || r.date >= fromDate) &&
-      (!toDate || r.date <= toDate) &&
-      (!status || r.status === status)
-    );
-  });
-}
+    let empId = employeeFilter.value;
+    let status = statusFilter.value;
 
-// CSV Export
-function exportCsvFile(data, filename) {
-  if (!data || data.length === 0) return;
-  let csv = Object.keys(data[0]).join(",") + "\n";
-  csv += data.map(row => Object.values(row).join(",")).join("\n");
+    let filtered = records.filter(r => {
+      let matchEmp = !empId || r.fingerprintId === empId;
+      let matchStatus = !status || (r.status && r.status.toUpperCase() === status.toUpperCase());
+      return matchEmp && matchStatus;
+    });
 
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-}
+    console.log("Filtered records:", filtered);
+    renderRecords(filtered);
+  }
 
-// Main Loader
-async function loadData() {
-  const employees = await fetchEmployees();
-  const records = await fetchRecords();
+  // Reset filters
+  function resetFilters() {
+    employeeFilter.value = "";
+    fromDate.value = "";
+    toDate.value = "";
+    statusFilter.value = "";
+    applyFilters();
+  }
 
-  // Populate employee filter dropdown
-  const empSelect = document.getElementById("employeeFilter");
-  empSelect.innerHTML =
-    `<option value="">All Employees</option>` +
-    employees.map(e => `<option value="${e.fingerprintId}">${e.name}</option>`).join("");
+  // Event listeners
+  applyFiltersBtn.addEventListener("click", applyFilters);
+  resetFiltersBtn.addEventListener("click", resetFilters);
+  refreshBtn.addEventListener("click", applyFilters);
 
-  renderStats(records, employees);
-  let absentList = renderAbsent(employees, records);
-  renderRecords(records, employees);
-
-  // Filters
-  document.getElementById("applyFilters").onclick = () => {
-    const filtered = applyFilters(records);
-    renderRecords(filtered, employees);
-    renderAbsent(employees, records); // always today's absent
-  };
-
-  document.getElementById("resetFilters").onclick = () => {
-    document.getElementById("employeeFilter").value = "";
-    document.getElementById("fromDate").value = "";
-    document.getElementById("toDate").value = "";
-    document.getElementById("statusFilter").value = "";
-    renderRecords(records, employees);
-    absentList = renderAbsent(employees, records);
-  };
-
-  document.getElementById("refreshData").onclick = loadData;
-
-  // Export CSV
-  document.getElementById("exportCsv").onclick = () => {
-    exportCsvFile(records, "attendance_records.csv");
-  };
-
-  document.getElementById("exportAbsentCsv").onclick = () => {
-    const absentData = absentList.map(e => ({
-      fingerprintId: e.fingerprintId,
-      name: e.name,
-      department: e.department,
-      status: "ABSENT"
-    }));
-    exportCsvFile(absentData, "absent_employees.csv");
-  };
-}
-
-loadData();
-// API Endpoints
-const apiEmployees = "/api/employees";
-const apiRecords = "/api/attendance/records";
-
-// Fetch Employees
-async function fetchEmployees() {
-  const res = await fetch(apiEmployees);
-  return res.json();
-}
-
-// Fetch Attendance Records
-async function fetchRecords() {
-  const res = await fetch(apiRecords);
-  return res.json();
-}
-
-// ========================= Existing Functions =========================
-
-// Stats
-function renderStats(records, employees) {
-  const today = new Date().toISOString().split("T")[0];
-  const presentToday = records.filter(r => r.date === today && r.status === "PRESENT").length;
-  const totalEmployees = employees.length;
-  const rate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
-
-  document.getElementById("totalRecords").textContent = records.length;
-  document.getElementById("presentToday").textContent = presentToday;
-  document.getElementById("totalEmployees").textContent = totalEmployees;
-  document.getElementById("attendanceRate").textContent = rate + "%";
-}
-
-// Absent
-function renderAbsent(employees, records) {
-  const today = new Date().toISOString().split("T")[0];
-  const presentFps = records
-    .filter(r => r.date === today && r.status === "PRESENT")
-    .map(r => r.fingerprintId);
-
-  const absent = employees.filter(e => !presentFps.includes(e.fingerprintId));
-
-  document.getElementById("absentCount").textContent =
-    `${absent.length} employees absent on ${today}`;
-
-  const tbody = document.querySelector("#absentTable tbody");
-  tbody.innerHTML = absent
-    .map(
-      e => `
-      <tr>
-        <td>${e.fingerprintId}</td>
-        <td>${e.name}</td>
-        <td>${e.department || "-"}</td>
-        <td style="color:red;font-weight:bold">ABSENT</td>
-      </tr>`
-    )
-    .join("");
-
-  return absent;
-}
-
-// Records Table
-function renderRecords(records, employees) {
-  const tbody = document.getElementById("recordsBody");
-  tbody.innerHTML = records
-    .map(r => {
-      const emp = employees.find(e => e.fingerprintId === r.fingerprintId) || {};
-      return `
-        <tr>
-          <td>${r.date}</td>
-          <td>${r.time}</td>
-          <td>${emp.name || "Unknown"}</td>
-          <td>${r.fingerprintId}</td>
-          <td>${emp.department || "-"}</td>
-          <td style="font-weight:bold; color:${r.status === "PRESENT" ? "green" : "red"}">
-            ${r.status}
-          </td>
-        </tr>
-      `;
-    })
-    .join("");
-}
-
-// Filters
-function applyFilters(records) {
-  const empId = document.getElementById("employeeFilter").value;
-  const fromDate = document.getElementById("fromDate").value;
-  const toDate = document.getElementById("toDate").value;
-  const status = document.getElementById("statusFilter").value;
-
-  return records.filter(r => {
-    return (
-      (!empId || r.fingerprintId === empId) &&
-      (!fromDate || r.date >= fromDate) &&
-      (!toDate || r.date <= toDate) &&
-      (!status || r.status === status)
-    );
-  });
-}
-
-// CSV Export
-function exportCsvFile(data, filename) {
-  if (!data || data.length === 0) return;
-  let csv = Object.keys(data[0]).join(",") + "\n";
-  csv += data.map(row => Object.values(row).join(",")).join("\n");
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-}
-
-// Main Loader
-async function loadData() {
-  const employees = await fetchEmployees();
-  const records = await fetchRecords();
-
-  // Populate employee filter dropdown
-  const empSelect = document.getElementById("employeeFilter");
-  empSelect.innerHTML =
-    `<option value="">All Employees</option>` +
-    employees.map(e => `<option value="${e.fingerprintId}">${e.name}</option>`).join("");
-
-  renderStats(records, employees);
-  let absentList = renderAbsent(employees, records);
-  renderRecords(records, employees);
-
-  // Filters
-  document.getElementById("applyFilters").onclick = () => {
-    const filtered = applyFilters(records);
-    renderRecords(filtered, employees);
-    renderAbsent(employees, records); // always today's absent
-  };
-
-  document.getElementById("resetFilters").onclick = () => {
-    document.getElementById("employeeFilter").value = "";
-    document.getElementById("fromDate").value = "";
-    document.getElementById("toDate").value = "";
-    document.getElementById("statusFilter").value = "";
-    renderRecords(records, employees);
-    absentList = renderAbsent(employees, records);
-  };
-
-  document.getElementById("refreshData").onclick = loadData;
-
-  // Export CSV
-  document.getElementById("exportCsv").onclick = () => {
-    exportCsvFile(records, "attendance_records.csv");
-  };
-
-  document.getElementById("exportAbsentCsv").onclick = () => {
-    const absentData = absentList.map(e => ({
-      fingerprintId: e.fingerprintId,
-      name: e.name,
-      department: e.department,
-      status: "ABSENT"
-    }));
-    exportCsvFile(absentData, "absent_employees.csv");
-  };
-}
-
-loadData();
+  // Initial load
+  loadEmployees().then(applyFilters);
+});
