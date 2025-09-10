@@ -613,22 +613,31 @@ body {
 }
 
 /* Absent Employees Header Layout */
+/* Align heading + export button */
 .absent-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 12px;
 }
 
-/* Square Box for Export Button */
-.export-box {
-  background: #fff5f5;
+/* Square styled button box */
+.export-btn-box {
+  background: #fff;
+  color: #e74c3c;
   border: 2px solid #e74c3c;
-  border-radius: 12px;
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
 }
-.export-box .btn-danger {
-  margin: 0;
+
+.export-btn-box:hover {
+  background: #e74c3c;
+  color: #fff;
+  transform: scale(1.05);
 }
+
+
