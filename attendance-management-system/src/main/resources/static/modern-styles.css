@@ -829,4 +829,28 @@ body {
   justify-content: space-between;
   align-items: center;
 }
+/* Align header and button */
+.absent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Button styling (rectangle style, not square) */
+.export-btn-box {
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 8px;
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.export-btn-box:hover {
+  background: #a71d2a;
+}
+
 
