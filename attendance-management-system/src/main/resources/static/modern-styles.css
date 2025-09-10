@@ -804,3 +804,29 @@ body {
   background: #f1f1f1;
 }
 
+/* Square Export Button */
+.btn-square {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: none;
+  background: #dc3545;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-square:hover {
+  background: #a71d2a;
+}
+
+/* Align export button next to header */
+.absent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
