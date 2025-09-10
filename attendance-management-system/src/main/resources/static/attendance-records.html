@@ -66,32 +66,29 @@
       </div>
     </div>
 
-<!-- Absent Employees Section -->
-<!-- Absent Employees Section -->
-<div class="form-section glass-card" id="absentSection">
-  <div class="absent-header">
-    <h3>🚫 Absent Employees Today</h3>
-    <button class="export-btn-box" id="exportAbsentCsv">
-      📤 Export Absent CSV
-    </button>
-  </div>
-  <p id="absentCount">0 employees absent today</p>
-  <div class="table-container">
-    <table class="table" id="absentTable">
-      <thead>
-        <tr>
-          <th>Employee ID</th>
-          <th>Name</th>
-          <th>Department</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
-
-
+    <!-- Absent Employees Section -->
+    <div class="form-section glass-card" id="absentSection">
+      <div class="absent-header">
+        <h3>🚫 Absent Employees Today</h3>
+        <button class="btn btn-danger export-btn-box" id="exportAbsentCsv">
+          📤 Export Absent CSV
+        </button>
+      </div>
+      <p id="absentCount">0 employees absent today</p>
+      <div class="table-container">
+        <table class="table" id="absentTable">
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
 
     <!-- Attendance Records Table -->
     <div class="form-section glass-card">
@@ -155,6 +152,8 @@
           <td>${e.department}</td>
           <td style="color:red;font-weight:bold">ABSENT</td>
         </tr>`).join("");
+
+      return absent;
     }
 
     function renderRecords(records, employees) {
@@ -183,7 +182,7 @@
       const status = document.getElementById("statusFilter").value;
 
       return records.filter(r => {
-        return (!empId || r.employeeId === empId) &&
+        return (!empId || r.employeeId == empId) &&
                (!fromDate || r.date >= fromDate) &&
                (!toDate || r.date <= toDate) &&
                (!status || r.status === status);
@@ -213,13 +212,14 @@
           employees.map(e => `<option value="${e.id}">${e.name}</option>`).join("");
 
       renderStats(records, employees);
-      renderAbsent(employees, records);
+      let absentList = renderAbsent(employees, records);
       renderRecords(records, employees);
 
       // Filters
       document.getElementById("applyFilters").onclick = () => {
         const filtered = applyFilters(records);
         renderRecords(filtered, employees);
+        absentList = renderAbsent(employees, filtered);
       };
 
       document.getElementById("resetFilters").onclick = () => {
@@ -228,6 +228,7 @@
         document.getElementById("toDate").value = "";
         document.getElementById("statusFilter").value = "";
         renderRecords(records, employees);
+        absentList = renderAbsent(employees, records);
       };
 
       document.getElementById("refreshData").onclick = loadData;
@@ -238,10 +239,13 @@
       };
 
       document.getElementById("exportAbsentCsv").onclick = () => {
-        const today = new Date().toISOString().split("T")[0];
-        const presentIds = records.filter(r => r.date === today && r.status === "PRESENT").map(r => r.employeeId);
-        const absent = employees.filter(e => !presentIds.includes(e.id));
-        exportCsvFile(absent, "absent_employees.csv");
+        const absentData = absentList.map(e => ({
+          id: e.id,
+          name: e.name,
+          department: e.department,
+          status: "ABSENT"
+        }));
+        exportCsvFile(absentData, "absent_employees.csv");
       };
     }
 
@@ -249,6 +253,3 @@
   </script>
 </body>
 </html>
-
-
-
