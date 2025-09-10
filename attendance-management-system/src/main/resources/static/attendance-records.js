@@ -1,31 +1,22 @@
-// ================= API Endpoints =================
+// API Endpoints
 const apiEmployees = "/api/employees";
 const apiRecords = "/api/attendance/records";
 
-// ================= Fetch Functions =================
+// Fetch Employees
 async function fetchEmployees() {
-  try {
-    const res = await fetch(apiEmployees);
-    if (!res.ok) throw new Error("Failed to fetch employees");
-    return await res.json();
-  } catch (err) {
-    console.error("❌ Employee fetch error:", err);
-    return [];
-  }
+  const res = await fetch(apiEmployees);
+  return res.json();
 }
 
+// Fetch Attendance Records
 async function fetchRecords() {
-  try {
-    const res = await fetch(apiRecords);
-    if (!res.ok) throw new Error("Failed to fetch records");
-    return await res.json();
-  } catch (err) {
-    console.error("❌ Records fetch error:", err);
-    return [];
-  }
+  const res = await fetch(apiRecords);
+  return res.json();
 }
 
-// ================= Render Stats =================
+// ========================= Existing Functions =========================
+
+// Stats
 function renderStats(records, employees) {
   const today = new Date().toISOString().split("T")[0];
   const presentToday = records.filter(r => r.date === today && r.status === "PRESENT").length;
@@ -38,14 +29,14 @@ function renderStats(records, employees) {
   document.getElementById("attendanceRate").textContent = rate + "%";
 }
 
-// ================= Render Absent =================
+// Absent
 function renderAbsent(employees, records) {
   const today = new Date().toISOString().split("T")[0];
-  const presentIds = records
+  const presentFps = records
     .filter(r => r.date === today && r.status === "PRESENT")
-    .map(r => r.employeeId);
+    .map(r => r.fingerprintId);
 
-  const absent = employees.filter(e => !presentIds.includes(e.id));
+  const absent = employees.filter(e => !presentFps.includes(e.fingerprintId));
 
   document.getElementById("absentCount").textContent =
     `${absent.length} employees absent on ${today}`;
@@ -55,9 +46,9 @@ function renderAbsent(employees, records) {
     .map(
       e => `
       <tr>
-        <td>${e.id}</td>
+        <td>${e.fingerprintId}</td>
         <td>${e.name}</td>
-        <td>${e.department}</td>
+        <td>${e.department || "-"}</td>
         <td style="color:red;font-weight:bold">ABSENT</td>
       </tr>`
     )
@@ -66,57 +57,48 @@ function renderAbsent(employees, records) {
   return absent;
 }
 
-// ================= Render Records =================
+// Records Table
 function renderRecords(records, employees) {
   const tbody = document.getElementById("recordsBody");
   tbody.innerHTML = records
     .map(r => {
-      const emp = employees.find(e => e.id === r.employeeId) || {};
+      const emp = employees.find(e => e.fingerprintId === r.fingerprintId) || {};
       return `
         <tr>
           <td>${r.date}</td>
           <td>${r.time}</td>
           <td>${emp.name || "Unknown"}</td>
-          <td>${r.employeeId}</td>
+          <td>${r.fingerprintId}</td>
           <td>${emp.department || "-"}</td>
-          <td style="font-weight:bold; color:${
-            r.status === "PRESENT" ? "green" : "red"
-          }">${r.status}</td>
+          <td style="font-weight:bold; color:${r.status === "PRESENT" ? "green" : "red"}">
+            ${r.status}
+          </td>
         </tr>
       `;
     })
     .join("");
 }
 
-// ================= Apply Filters =================
+// Filters
 function applyFilters(records) {
   const empId = document.getElementById("employeeFilter").value;
   const fromDate = document.getElementById("fromDate").value;
   const toDate = document.getElementById("toDate").value;
   const status = document.getElementById("statusFilter").value;
 
-  const filtered = records.filter(r => {
+  return records.filter(r => {
     return (
-      (!empId || r.employeeId == empId) &&
+      (!empId || r.fingerprintId === empId) &&
       (!fromDate || r.date >= fromDate) &&
       (!toDate || r.date <= toDate) &&
       (!status || r.status === status)
     );
   });
-
-  console.log("✅ Filters applied:", {
-    empId, fromDate, toDate, status, filteredCount: filtered.length
-  });
-
-  return filtered;
 }
 
-// ================= Export CSV =================
+// CSV Export
 function exportCsvFile(data, filename) {
-  if (!data || data.length === 0) {
-    alert("⚠️ No data to export.");
-    return;
-  }
+  if (!data || data.length === 0) return;
   let csv = Object.keys(data[0]).join(",") + "\n";
   csv += data.map(row => Object.values(row).join(",")).join("\n");
 
@@ -128,9 +110,8 @@ function exportCsvFile(data, filename) {
   a.click();
 }
 
-// ================= Load Data =================
+// Main Loader
 async function loadData() {
-  console.log("🔄 Loading data...");
   const employees = await fetchEmployees();
   const records = await fetchRecords();
 
@@ -138,46 +119,44 @@ async function loadData() {
   const empSelect = document.getElementById("employeeFilter");
   empSelect.innerHTML =
     `<option value="">All Employees</option>` +
-    employees.map(e => `<option value="${e.id}">${e.name}</option>`).join("");
+    employees.map(e => `<option value="${e.fingerprintId}">${e.name}</option>`).join("");
 
   renderStats(records, employees);
   let absentList = renderAbsent(employees, records);
   renderRecords(records, employees);
 
-  // ✅ Attach Filter Events
-  document.getElementById("applyFilters").addEventListener("click", () => {
-    console.log("📌 Apply Filters button clicked");
+  // Filters
+  document.getElementById("applyFilters").onclick = () => {
     const filtered = applyFilters(records);
     renderRecords(filtered, employees);
-    renderAbsent(employees, records); // always today
-  });
+    renderAbsent(employees, records); // always today's absent
+  };
 
-  document.getElementById("resetFilters").addEventListener("click", () => {
-    console.log("🔄 Reset Filters clicked");
+  document.getElementById("resetFilters").onclick = () => {
     document.getElementById("employeeFilter").value = "";
     document.getElementById("fromDate").value = "";
     document.getElementById("toDate").value = "";
     document.getElementById("statusFilter").value = "";
     renderRecords(records, employees);
     absentList = renderAbsent(employees, records);
-  });
+  };
 
-  document.getElementById("refreshData").addEventListener("click", loadData);
+  document.getElementById("refreshData").onclick = loadData;
 
-  document.getElementById("exportCsv").addEventListener("click", () => {
+  // Export CSV
+  document.getElementById("exportCsv").onclick = () => {
     exportCsvFile(records, "attendance_records.csv");
-  });
+  };
 
-  document.getElementById("exportAbsentCsv").addEventListener("click", () => {
+  document.getElementById("exportAbsentCsv").onclick = () => {
     const absentData = absentList.map(e => ({
-      id: e.id,
+      fingerprintId: e.fingerprintId,
       name: e.name,
       department: e.department,
       status: "ABSENT"
     }));
     exportCsvFile(absentData, "absent_employees.csv");
-  });
+  };
 }
 
-// ================= Run After DOM Loaded =================
-document.addEventListener("DOMContentLoaded", loadData);
+loadData();
