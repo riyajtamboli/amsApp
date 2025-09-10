@@ -23,23 +23,36 @@ body {
 }
 
 /* Navbar */
+/* Navbar Glass Style */
 .navbar {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  padding: 15px 30px;
+  border-radius: 15px;
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 20px;
-  padding: 15px;
-  background: #fff;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  margin: 20px auto;
+  max-width: 1000px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
-
 .navbar a {
+  color: white;
   text-decoration: none;
-  color: #333;
-  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(6px);
+  font-weight: bold;
+  transition: all 0.3s ease;
 }
-
 .navbar a.active {
-  color: #4CAF50;
+  background: #ff9800;
+  color: #fff;
+}
+.navbar a:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 /* Header */
@@ -203,4 +216,5 @@ body {
   margin: 20px 0;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
+
 
