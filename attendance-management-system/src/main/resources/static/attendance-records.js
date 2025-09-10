@@ -8,9 +8,13 @@ async function fetchEmployees() {
   return res.json();
 }
 
-// Fetch Attendance Records
-async function fetchRecords() {
-  const res = await fetch(apiRecords);
+// Fetch Attendance Records with optional query params
+async function fetchRecords(params = {}) {
+  let url = apiRecords;
+  const query = new URLSearchParams(params).toString();
+  if (query) url += "?" + query;
+
+  const res = await fetch(url);
   return res.json();
 }
 
@@ -79,23 +83,6 @@ function renderRecords(records, employees) {
     .join("");
 }
 
-// Filters
-function applyFilters(records) {
-  const empId = document.getElementById("employeeFilter").value;
-  const fromDate = document.getElementById("fromDate").value;
-  const toDate = document.getElementById("toDate").value;
-  const status = document.getElementById("statusFilter").value;
-
-  return records.filter(r => {
-    return (
-      (!empId || r.fingerprintId === empId) &&
-      (!fromDate || r.date >= fromDate) &&
-      (!toDate || r.date <= toDate) &&
-      (!status || r.status === status)
-    );
-  });
-}
-
 // CSV Export
 function exportCsvFile(data, filename) {
   if (!data || data.length === 0) return;
@@ -111,37 +98,54 @@ function exportCsvFile(data, filename) {
 }
 
 // Main Loader
-async function loadData() {
+async function loadData(params = {}) {
   const employees = await fetchEmployees();
-  const records = await fetchRecords();
+  const records = await fetchRecords(params);
 
-  // Populate employee filter dropdown
+  // Populate employee filter dropdown once
   const empSelect = document.getElementById("employeeFilter");
-  empSelect.innerHTML =
-    `<option value="">All Employees</option>` +
-    employees.map(e => `<option value="${e.fingerprintId}">${e.name}</option>`).join("");
+  if (empSelect.options.length <= 1) {
+    empSelect.innerHTML =
+      `<option value="">All Employees</option>` +
+      employees.map(e => `<option value="${e.fingerprintId}">${e.name} (${e.fingerprintId})</option>`).join("");
+  }
 
   renderStats(records, employees);
   let absentList = renderAbsent(employees, records);
   renderRecords(records, employees);
 
   // Filters
-  document.getElementById("applyFilters").onclick = () => {
-    const filtered = applyFilters(records);
+  document.getElementById("applyFilters").onclick = async () => {
+    const empId = document.getElementById("employeeFilter").value;
+    const fromDate = document.getElementById("fromDate").value;
+    const toDate = document.getElementById("toDate").value;
+    const status = document.getElementById("statusFilter").value;
+
+    const params = {};
+    if (fromDate) params.dateFrom = fromDate;
+    if (toDate) params.dateTo = toDate;
+
+    let filtered = await fetchRecords(params);
+
+    // Local filter for emp + status
+    filtered = filtered.filter(r =>
+      (!empId || r.fingerprintId === empId) &&
+      (!status || r.status === status)
+    );
+
     renderRecords(filtered, employees);
-    renderAbsent(employees, records); // always today's absent
+    renderAbsent(employees, filtered);
   };
 
-  document.getElementById("resetFilters").onclick = () => {
+  document.getElementById("resetFilters").onclick = async () => {
     document.getElementById("employeeFilter").value = "";
     document.getElementById("fromDate").value = "";
     document.getElementById("toDate").value = "";
     document.getElementById("statusFilter").value = "";
-    renderRecords(records, employees);
-    absentList = renderAbsent(employees, records);
+    loadData(); // reload all
   };
 
-  document.getElementById("refreshData").onclick = loadData;
+  document.getElementById("refreshData").onclick = () => loadData();
 
   // Export CSV
   document.getElementById("exportCsv").onclick = () => {
