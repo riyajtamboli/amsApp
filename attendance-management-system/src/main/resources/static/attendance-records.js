@@ -104,12 +104,8 @@ function applyFilters(records) {
     );
   });
 
-  console.log("✅ Filter Applied:", {
-    empId,
-    fromDate,
-    toDate,
-    status,
-    resultCount: filtered.length
+  console.log("✅ Filters applied:", {
+    empId, fromDate, toDate, status, filteredCount: filtered.length
   });
 
   return filtered;
@@ -148,15 +144,15 @@ async function loadData() {
   let absentList = renderAbsent(employees, records);
   renderRecords(records, employees);
 
-  // ✅ Attach Filter Logic
-  document.getElementById("applyFilters").onclick = () => {
+  // ✅ Attach Filter Events
+  document.getElementById("applyFilters").addEventListener("click", () => {
     console.log("📌 Apply Filters button clicked");
     const filtered = applyFilters(records);
     renderRecords(filtered, employees);
     renderAbsent(employees, records); // always today
-  };
+  });
 
-  document.getElementById("resetFilters").onclick = () => {
+  document.getElementById("resetFilters").addEventListener("click", () => {
     console.log("🔄 Reset Filters clicked");
     document.getElementById("employeeFilter").value = "";
     document.getElementById("fromDate").value = "";
@@ -164,17 +160,15 @@ async function loadData() {
     document.getElementById("statusFilter").value = "";
     renderRecords(records, employees);
     absentList = renderAbsent(employees, records);
-  };
+  });
 
-  document.getElementById("refreshData").onclick = loadData;
+  document.getElementById("refreshData").addEventListener("click", loadData);
 
-  // Export All Records
-  document.getElementById("exportCsv").onclick = () => {
+  document.getElementById("exportCsv").addEventListener("click", () => {
     exportCsvFile(records, "attendance_records.csv");
-  };
+  });
 
-  // Export Absent Only
-  document.getElementById("exportAbsentCsv").onclick = () => {
+  document.getElementById("exportAbsentCsv").addEventListener("click", () => {
     const absentData = absentList.map(e => ({
       id: e.id,
       name: e.name,
@@ -182,9 +176,8 @@ async function loadData() {
       status: "ABSENT"
     }));
     exportCsvFile(absentData, "absent_employees.csv");
-  };
+  });
 }
 
-// ================= Run =================
-loadData();
-
+// ================= Run After DOM Loaded =================
+document.addEventListener("DOMContentLoaded", loadData);
