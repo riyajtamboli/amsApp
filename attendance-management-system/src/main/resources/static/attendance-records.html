@@ -67,24 +67,28 @@
     </div>
 
     <!-- Absent Employees Section -->
-    <div class="form-section glass-card" id="absentSection">
-      <h3>🚫 Absent Employees Today</h3>
-      <p id="absentCount">0 employees absent today</p>
+<div class="form-section glass-card" id="absentSection">
+  <div class="absent-header">
+    <h3>🚫 Absent Employees Today</h3>
+    <div class="export-box">
       <button class="btn btn-danger" id="exportAbsentCsv">📤 Export Absent CSV</button>
-      <div class="table-container">
-        <table class="table" id="absentTable">
-          <thead>
-            <tr>
-              <th>Employee ID</th>
-              <th>Name</th>
-              <th>Department</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
     </div>
+  </div>
+  <p id="absentCount">0 employees absent today</p>
+  <div class="table-container">
+    <table class="table" id="absentTable">
+      <thead>
+        <tr>
+          <th>Employee ID</th>
+          <th>Name</th>
+          <th>Department</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
 
     <!-- Attendance Records Table -->
     <div class="form-section glass-card">
@@ -242,3 +246,4 @@
   </script>
 </body>
 </html>
+
