@@ -9,15 +9,13 @@
 <body>
   <div class="container">
     <!-- Navbar -->
-<!-- Navigation Bar -->
-<div class="navbar">
-  <a href="index.html">🏠 Home</a>
-  <a href="add-employee.html">➕ Add Employee</a>
-  <a href="view-employees.html">👥 View Employees</a>
-  <a href="attendance-records.html" class="active">📊 Records</a>
-  <a href="verify-attendance.html">🔒 Verify Attendance</a>
-</div>
-
+    <div class="navbar">
+      <a href="index.html">🏠 Home</a>
+      <a href="add-employee.html">➕ Add Employee</a>
+      <a href="view-employees.html">👥 View Employees</a>
+      <a href="attendance-records.html" class="active">📊 Records</a>
+      <a href="verify-attendance.html">🔒 Verify Attendance</a>
+    </div>
 
     <!-- Header -->
     <div class="header">
@@ -61,10 +59,10 @@
         </select>
       </div>
       <div class="btn-group">
-        <button class="btn" id="applyFilters">Apply Filters</button>
-        <button class="btn btn-secondary" id="resetFilters">Reset</button>
-        <button class="btn btn-secondary" id="refreshData">Refresh</button>
-        <button class="btn" id="exportCsv">Export CSV</button>
+        <button class="btn" id="applyFilters" type="button">Apply Filters</button>
+        <button class="btn btn-secondary" id="resetFilters" type="button">Reset</button>
+        <button class="btn btn-secondary" id="refreshData" type="button">Refresh</button>
+        <button class="btn" id="exportCsv" type="button">Export CSV</button>
       </div>
     </div>
 
@@ -72,7 +70,7 @@
     <div class="form-section glass-card" id="absentSection">
       <div class="absent-header">
         <h3>Absent Employees Today</h3>
-        <button class="export-btn-box" id="exportAbsentCsv">
+        <button class="export-btn-box" id="exportAbsentCsv" type="button">
           Export Absent CSV
         </button>
       </div>
@@ -117,4 +115,3 @@
   <script src="attendance-records.js"></script>
 </body>
 </html>
-
