@@ -84,6 +84,10 @@ function renderRecords(records, employees) {
         employees.find(
           e => e.fingerprintId === (r.fingerprintId || r.employee?.fingerprintId)
         ) || r.employee || {};
+
+      // ✅ Compute status locally
+      const status = r.checkIn ? "PRESENT" : "ABSENT";
+
       return `
         <tr>
           <td>${r.date}</td>
@@ -91,16 +95,15 @@ function renderRecords(records, employees) {
           <td>${emp.name || "Unknown"}</td>
           <td>${r.fingerprintId || r.employee?.fingerprintId || "-"}</td>
           <td>${emp.department || "-"}</td>
-          <td style="font-weight:bold; color:${
-            (r.status?.toUpperCase() === "PRESENT") ? "green" : "red"
-          }">
-            ${r.status || "-"}
+          <td style="font-weight:bold; color:${status === "PRESENT" ? "green" : "red"}">
+            ${status}
           </td>
         </tr>
       `;
     })
     .join("");
 }
+
 
 // CSV Export
 function exportCsvFile(data, filename) {
@@ -157,13 +160,16 @@ document.getElementById("applyFilters").onclick = async () => {
   let filtered = await fetchRecords(params);
 
   // ✅ Normalize case + handle both r.fingerprintId and r.employee.fingerprintId
-  filtered = filtered.filter(r =>
-    (!empId ||
-      r.fingerprintId === empId ||
-      r.employee?.fingerprintId === empId) &&
-    (!status ||
-      (r.status && r.status.toUpperCase() === status.toUpperCase()))
+filtered = filtered.filter(r => {
+  const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
+  const statusComputed = r.checkIn ? "PRESENT" : "ABSENT";
+
+  return (
+    (!empId || recordEmpId === empId) &&
+    (!status || statusComputed.toUpperCase() === status.toUpperCase())
   );
+});
+
 
   console.log("Filtered records:", filtered);
 
