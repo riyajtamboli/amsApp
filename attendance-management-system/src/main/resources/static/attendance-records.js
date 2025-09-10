@@ -1,127 +1,324 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE = "https://amsapplication.up.railway.app"; // ✅ adjust if backend URL changes
+// API Endpoints
+const apiEmployees = "/api/employees";
+const apiRecords = "/api/attendance/records";
 
-  const recordsBody = document.getElementById("recordsBody");
-  const employeeFilter = document.getElementById("employeeFilter");
-  const fromDate = document.getElementById("fromDate");
-  const toDate = document.getElementById("toDate");
-  const statusFilter = document.getElementById("statusFilter");
+// Fetch Employees
+async function fetchEmployees() {
+  const res = await fetch(apiEmployees);
+  return res.json();
+}
 
-  const applyFiltersBtn = document.getElementById("applyFilters");
-  const resetFiltersBtn = document.getElementById("resetFilters");
-  const refreshBtn = document.getElementById("refreshData");
+// Fetch Attendance Records
+async function fetchRecords() {
+  const res = await fetch(apiRecords);
+  return res.json();
+}
 
-  // 🔹 Load employees into dropdown
-  async function loadEmployees() {
-    try {
-      let res = await fetch(`${API_BASE}/api/employees`);
-      if (!res.ok) throw new Error(`Failed to fetch employees: ${res.status}`);
-      let employees = await res.json();
+// ========================= Existing Functions =========================
 
-      console.log("✅ Employees from backend:", employees);
+// Stats
+function renderStats(records, employees) {
+  const today = new Date().toISOString().split("T")[0];
+  const presentToday = records.filter(r => r.date === today && r.status === "PRESENT").length;
+  const totalEmployees = employees.length;
+  const rate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
 
-      if (!Array.isArray(employees)) {
-        console.error("Unexpected employees format:", employees);
-        return;
-      }
+  document.getElementById("totalRecords").textContent = records.length;
+  document.getElementById("presentToday").textContent = presentToday;
+  document.getElementById("totalEmployees").textContent = totalEmployees;
+  document.getElementById("attendanceRate").textContent = rate + "%";
+}
 
-      employees.forEach(emp => {
-        if (!emp.fingerprintId || !emp.name) return;
-        let option = document.createElement("option");
-        option.value = emp.fingerprintId;
-        option.textContent = `${emp.name} (${emp.fingerprintId})`;
-        employeeFilter.appendChild(option);
-      });
-    } catch (err) {
-      console.error("❌ Error loading employees:", err);
-    }
-  }
+// Absent
+function renderAbsent(employees, records) {
+  const today = new Date().toISOString().split("T")[0];
+  const presentFps = records
+    .filter(r => r.date === today && r.status === "PRESENT")
+    .map(r => r.fingerprintId);
 
-  // 🔹 Fetch attendance records
-  async function fetchRecords() {
-    let url = `${API_BASE}/api/attendance/records`;
-    if (fromDate.value && toDate.value) {
-      url += `?dateFrom=${fromDate.value}&dateTo=${toDate.value}`;
-    } else if (fromDate.value) {
-      url += `?dateFrom=${fromDate.value}`;
-    }
+  const absent = employees.filter(e => !presentFps.includes(e.fingerprintId));
 
-    console.log("📡 Fetching records from:", url);
+  document.getElementById("absentCount").textContent =
+    `${absent.length} employees absent on ${today}`;
 
-    try {
-      let res = await fetch(url);
-      if (!res.ok) throw new Error(`Failed to fetch records: ${res.status}`);
-      let records = await res.json();
+  const tbody = document.querySelector("#absentTable tbody");
+  tbody.innerHTML = absent
+    .map(
+      e => `
+      <tr>
+        <td>${e.fingerprintId}</td>
+        <td>${e.name}</td>
+        <td>${e.department || "-"}</td>
+        <td style="color:red;font-weight:bold">ABSENT</td>
+      </tr>`
+    )
+    .join("");
 
-      console.log("✅ Raw records from backend:", records);
-      return Array.isArray(records) ? records : [];
-    } catch (err) {
-      console.error("❌ Error fetching records:", err);
-      return [];
-    }
-  }
+  return absent;
+}
 
-  // 🔹 Render records into table
-  function renderRecords(records) {
-    recordsBody.innerHTML = "";
-
-    if (!records || records.length === 0) {
-      recordsBody.innerHTML = `<tr><td colspan="6">No records found</td></tr>`;
-      return;
-    }
-
-    records.forEach(r => {
-      let tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${r.date || "-"}</td>
-        <td>${r.checkIn || "-"}</td>
-        <td>${r.employee?.name || r.employeeName || "-"}</td>
-        <td>${r.employee?.fingerprintId || r.fingerprintId || "-"}</td>
-        <td>${r.employee?.department || r.department || "-"}</td>
-        <td style="font-weight:bold; color:${r.status?.toUpperCase() === "PRESENT" ? "green" : "red"}">
-          ${r.status || "-"}
-        </td>
+// Records Table
+function renderRecords(records, employees) {
+  const tbody = document.getElementById("recordsBody");
+  tbody.innerHTML = records
+    .map(r => {
+      const emp = employees.find(e => e.fingerprintId === r.fingerprintId) || {};
+      return `
+        <tr>
+          <td>${r.date}</td>
+          <td>${r.time}</td>
+          <td>${emp.name || "Unknown"}</td>
+          <td>${r.fingerprintId}</td>
+          <td>${emp.department || "-"}</td>
+          <td style="font-weight:bold; color:${r.status === "PRESENT" ? "green" : "red"}">
+            ${r.status}
+          </td>
+        </tr>
       `;
-      recordsBody.appendChild(tr);
-    });
-  }
+    })
+    .join("");
+}
 
-  // 🔹 Apply filters (frontend filtering after fetch)
-  async function applyFilters() {
-    let records = await fetchRecords();
+// Filters
+function applyFilters(records) {
+  const empId = document.getElementById("employeeFilter").value;
+  const fromDate = document.getElementById("fromDate").value;
+  const toDate = document.getElementById("toDate").value;
+  const status = document.getElementById("statusFilter").value;
 
-    let empId = employeeFilter.value;
-    let status = statusFilter.value;
+  return records.filter(r => {
+    return (
+      (!empId || r.fingerprintId === empId) &&
+      (!fromDate || r.date >= fromDate) &&
+      (!toDate || r.date <= toDate) &&
+      (!status || r.status === status)
+    );
+  });
+}
 
-    let filtered = records.filter(r => {
-      let matchEmp =
-        !empId ||
-        r.fingerprintId === empId ||
-        r.employee?.fingerprintId === empId;
-      let matchStatus =
-        !status ||
-        (r.status && r.status.toUpperCase() === status.toUpperCase());
-      return matchEmp && matchStatus;
-    });
+// CSV Export
+function exportCsvFile(data, filename) {
+  if (!data || data.length === 0) return;
+  let csv = Object.keys(data[0]).join(",") + "\n";
+  csv += data.map(row => Object.values(row).join(",")).join("\n");
 
-    console.log("✅ Filtered records:", filtered);
-    renderRecords(filtered);
-  }
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+}
 
-  // 🔹 Reset filters
-  function resetFilters() {
-    employeeFilter.value = "";
-    fromDate.value = "";
-    toDate.value = "";
-    statusFilter.value = "";
-    applyFilters();
-  }
+// Main Loader
+async function loadData() {
+  const employees = await fetchEmployees();
+  const records = await fetchRecords();
 
-  // 🔹 Event listeners
-  applyFiltersBtn.addEventListener("click", applyFilters);
-  resetFiltersBtn.addEventListener("click", resetFilters);
-  refreshBtn.addEventListener("click", applyFilters);
+  // Populate employee filter dropdown
+  const empSelect = document.getElementById("employeeFilter");
+  empSelect.innerHTML =
+    `<option value="">All Employees</option>` +
+    employees.map(e => `<option value="${e.fingerprintId}">${e.name}</option>`).join("");
 
-  // 🔹 Initial load
-  loadEmployees().then(applyFilters);
-});
+  renderStats(records, employees);
+  let absentList = renderAbsent(employees, records);
+  renderRecords(records, employees);
+
+  // Filters
+  document.getElementById("applyFilters").onclick = () => {
+    const filtered = applyFilters(records);
+    renderRecords(filtered, employees);
+    renderAbsent(employees, records); // always today's absent
+  };
+
+  document.getElementById("resetFilters").onclick = () => {
+    document.getElementById("employeeFilter").value = "";
+    document.getElementById("fromDate").value = "";
+    document.getElementById("toDate").value = "";
+    document.getElementById("statusFilter").value = "";
+    renderRecords(records, employees);
+    absentList = renderAbsent(employees, records);
+  };
+
+  document.getElementById("refreshData").onclick = loadData;
+
+  // Export CSV
+  document.getElementById("exportCsv").onclick = () => {
+    exportCsvFile(records, "attendance_records.csv");
+  };
+
+  document.getElementById("exportAbsentCsv").onclick = () => {
+    const absentData = absentList.map(e => ({
+      fingerprintId: e.fingerprintId,
+      name: e.name,
+      department: e.department,
+      status: "ABSENT"
+    }));
+    exportCsvFile(absentData, "absent_employees.csv");
+  };
+}
+
+loadData();
+// API Endpoints
+const apiEmployees = "/api/employees";
+const apiRecords = "/api/attendance/records";
+
+// Fetch Employees
+async function fetchEmployees() {
+  const res = await fetch(apiEmployees);
+  return res.json();
+}
+
+// Fetch Attendance Records
+async function fetchRecords() {
+  const res = await fetch(apiRecords);
+  return res.json();
+}
+
+// ========================= Existing Functions =========================
+
+// Stats
+function renderStats(records, employees) {
+  const today = new Date().toISOString().split("T")[0];
+  const presentToday = records.filter(r => r.date === today && r.status === "PRESENT").length;
+  const totalEmployees = employees.length;
+  const rate = totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
+
+  document.getElementById("totalRecords").textContent = records.length;
+  document.getElementById("presentToday").textContent = presentToday;
+  document.getElementById("totalEmployees").textContent = totalEmployees;
+  document.getElementById("attendanceRate").textContent = rate + "%";
+}
+
+// Absent
+function renderAbsent(employees, records) {
+  const today = new Date().toISOString().split("T")[0];
+  const presentFps = records
+    .filter(r => r.date === today && r.status === "PRESENT")
+    .map(r => r.fingerprintId);
+
+  const absent = employees.filter(e => !presentFps.includes(e.fingerprintId));
+
+  document.getElementById("absentCount").textContent =
+    `${absent.length} employees absent on ${today}`;
+
+  const tbody = document.querySelector("#absentTable tbody");
+  tbody.innerHTML = absent
+    .map(
+      e => `
+      <tr>
+        <td>${e.fingerprintId}</td>
+        <td>${e.name}</td>
+        <td>${e.department || "-"}</td>
+        <td style="color:red;font-weight:bold">ABSENT</td>
+      </tr>`
+    )
+    .join("");
+
+  return absent;
+}
+
+// Records Table
+function renderRecords(records, employees) {
+  const tbody = document.getElementById("recordsBody");
+  tbody.innerHTML = records
+    .map(r => {
+      const emp = employees.find(e => e.fingerprintId === r.fingerprintId) || {};
+      return `
+        <tr>
+          <td>${r.date}</td>
+          <td>${r.time}</td>
+          <td>${emp.name || "Unknown"}</td>
+          <td>${r.fingerprintId}</td>
+          <td>${emp.department || "-"}</td>
+          <td style="font-weight:bold; color:${r.status === "PRESENT" ? "green" : "red"}">
+            ${r.status}
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+// Filters
+function applyFilters(records) {
+  const empId = document.getElementById("employeeFilter").value;
+  const fromDate = document.getElementById("fromDate").value;
+  const toDate = document.getElementById("toDate").value;
+  const status = document.getElementById("statusFilter").value;
+
+  return records.filter(r => {
+    return (
+      (!empId || r.fingerprintId === empId) &&
+      (!fromDate || r.date >= fromDate) &&
+      (!toDate || r.date <= toDate) &&
+      (!status || r.status === status)
+    );
+  });
+}
+
+// CSV Export
+function exportCsvFile(data, filename) {
+  if (!data || data.length === 0) return;
+  let csv = Object.keys(data[0]).join(",") + "\n";
+  csv += data.map(row => Object.values(row).join(",")).join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+}
+
+// Main Loader
+async function loadData() {
+  const employees = await fetchEmployees();
+  const records = await fetchRecords();
+
+  // Populate employee filter dropdown
+  const empSelect = document.getElementById("employeeFilter");
+  empSelect.innerHTML =
+    `<option value="">All Employees</option>` +
+    employees.map(e => `<option value="${e.fingerprintId}">${e.name}</option>`).join("");
+
+  renderStats(records, employees);
+  let absentList = renderAbsent(employees, records);
+  renderRecords(records, employees);
+
+  // Filters
+  document.getElementById("applyFilters").onclick = () => {
+    const filtered = applyFilters(records);
+    renderRecords(filtered, employees);
+    renderAbsent(employees, records); // always today's absent
+  };
+
+  document.getElementById("resetFilters").onclick = () => {
+    document.getElementById("employeeFilter").value = "";
+    document.getElementById("fromDate").value = "";
+    document.getElementById("toDate").value = "";
+    document.getElementById("statusFilter").value = "";
+    renderRecords(records, employees);
+    absentList = renderAbsent(employees, records);
+  };
+
+  document.getElementById("refreshData").onclick = loadData;
+
+  // Export CSV
+  document.getElementById("exportCsv").onclick = () => {
+    exportCsvFile(records, "attendance_records.csv");
+  };
+
+  document.getElementById("exportAbsentCsv").onclick = () => {
+    const absentData = absentList.map(e => ({
+      fingerprintId: e.fingerprintId,
+      name: e.name,
+      department: e.department,
+      status: "ABSENT"
+    }));
+    exportCsvFile(absentData, "absent_employees.csv");
+  };
+}
+
+loadData();
