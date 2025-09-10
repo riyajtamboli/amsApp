@@ -142,34 +142,36 @@ async function loadData(params = {}) {
   renderRecords(records, employees);
 
   // Filters
-  document.getElementById("applyFilters").onclick = async () => {
-    const empId = document.getElementById("employeeFilter").value;
-    const fromDate = document.getElementById("fromDate").value;
-    const toDate = document.getElementById("toDate").value;
-    const status = document.getElementById("statusFilter").value;
+document.getElementById("applyFilters").onclick = async () => {
+  const empId = document.getElementById("employeeFilter").value;
+  const fromDate = document.getElementById("fromDate").value;
+  const toDate = document.getElementById("toDate").value;
+  const status = document.getElementById("statusFilter").value;
 
-    console.log("Applying filters:", { empId, fromDate, toDate, status });
+  console.log("Applying filters:", { empId, fromDate, toDate, status });
 
-    const params = {};
-    if (fromDate) params.dateFrom = fromDate;
-    if (toDate) params.dateTo = toDate;
+  const params = {};
+  if (fromDate) params.dateFrom = fromDate;
+  if (toDate) params.dateTo = toDate;
 
-    let filtered = await fetchRecords(params);
+  let filtered = await fetchRecords(params);
 
-    // Local filter for emp + status
-    filtered = filtered.filter(
-      r =>
-        (!empId ||
-          r.fingerprintId === empId ||
-          r.employee?.fingerprintId === empId) &&
-        (!status || (r.status && r.status.toUpperCase() === status.toUpperCase()))
-    );
+  // ✅ Normalize case + handle both r.fingerprintId and r.employee.fingerprintId
+  filtered = filtered.filter(r =>
+    (!empId ||
+      r.fingerprintId === empId ||
+      r.employee?.fingerprintId === empId) &&
+    (!status ||
+      (r.status && r.status.toUpperCase() === status.toUpperCase()))
+  );
 
-    console.log("Filtered records:", filtered.length);
+  console.log("Filtered records:", filtered);
 
-    renderRecords(filtered, employees);
-    absentList = renderAbsent(employees, filtered, true);
-  };
+  // ✅ Re-render with filtered records
+  renderRecords(filtered, employees);
+  absentList = renderAbsent(employees, filtered, true);
+};
+
 
   document.getElementById("resetFilters").onclick = async () => {
     console.log("Resetting filters...");
