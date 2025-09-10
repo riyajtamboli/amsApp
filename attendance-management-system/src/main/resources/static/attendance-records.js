@@ -43,7 +43,6 @@ function renderStats(records, employees) {
 function renderAbsent(employees, records, filterMode = false) {
   const today = new Date().toISOString().split("T")[0];
 
-  // If filtering by date range, use records set instead of "today only"
   const targetDate = filterMode ? null : today;
 
   const presentFps = records
@@ -84,10 +83,6 @@ function renderRecords(records, employees) {
         employees.find(
           e => e.fingerprintId === (r.fingerprintId || r.employee?.fingerprintId)
         ) || r.employee || {};
-
-      // ✅ Compute status locally
-      const status = r.checkIn ? "PRESENT" : "ABSENT";
-
       return `
         <tr>
           <td>${r.date}</td>
@@ -95,15 +90,16 @@ function renderRecords(records, employees) {
           <td>${emp.name || "Unknown"}</td>
           <td>${r.fingerprintId || r.employee?.fingerprintId || "-"}</td>
           <td>${emp.department || "-"}</td>
-          <td style="font-weight:bold; color:${status === "PRESENT" ? "green" : "red"}">
-            ${status}
+          <td style="font-weight:bold; color:${
+            (r.status?.toUpperCase() === "PRESENT") ? "green" : "red"
+          }">
+            ${r.status || "-"}
           </td>
         </tr>
       `;
     })
     .join("");
 }
-
 
 // CSV Export
 function exportCsvFile(data, filename) {
@@ -145,39 +141,42 @@ async function loadData(params = {}) {
   renderRecords(records, employees);
 
   // Filters
-document.getElementById("applyFilters").onclick = async () => {
-  const empId = document.getElementById("employeeFilter").value;
-  const fromDate = document.getElementById("fromDate").value;
-  const toDate = document.getElementById("toDate").value;
-  const status = document.getElementById("statusFilter").value;
+  document.getElementById("applyFilters").onclick = async () => {
+    const empId = document.getElementById("employeeFilter").value;
+    const fromDate = document.getElementById("fromDate").value;
+    const toDate = document.getElementById("toDate").value;
+    const status = document.getElementById("statusFilter").value;
 
-  console.log("Applying filters:", { empId, fromDate, toDate, status });
+    console.log("Applying filters:", { empId, fromDate, toDate, status });
 
-  const params = {};
-  if (fromDate) params.dateFrom = fromDate;
-  if (toDate) params.dateTo = toDate;
+    const params = {};
+    if (fromDate) params.dateFrom = fromDate;
+    if (toDate) params.dateTo = toDate;
 
-  let filtered = await fetchRecords(params);
+    let filtered = await fetchRecords(params);
 
-  // ✅ Normalize case + handle both r.fingerprintId and r.employee.fingerprintId
-filtered = filtered.filter(r => {
-  const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
-  const statusComputed = r.checkIn ? "PRESENT" : "ABSENT";
+    // ✅ Normalize case + compute status dynamically
+    filtered = filtered.filter(r => {
+      const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
+      const statusComputed = r.checkIn ? "PRESENT" : "ABSENT";
 
-  return (
-    (!empId || recordEmpId === empId) &&
-    (!status || statusComputed.toUpperCase() === status.toUpperCase())
-  );
-});
+      return (
+        (!empId || recordEmpId === empId) &&
+        (!status || statusComputed.toUpperCase() === status.toUpperCase())
+      );
+    });
 
+    console.log("Filtered records:", filtered);
 
-  console.log("Filtered records:", filtered);
+    // ✅ If empId is selected, restrict employee list
+    const filteredEmployees = empId
+      ? employees.filter(e => e.fingerprintId === empId)
+      : employees;
 
-  // ✅ Re-render with filtered records
-  renderRecords(filtered, employees);
-  absentList = renderAbsent(employees, filtered, true);
-};
-
+    // ✅ Re-render with filtered employees only
+    renderRecords(filtered, employees);
+    absentList = renderAbsent(filteredEmployees, filtered, true);
+  };
 
   document.getElementById("resetFilters").onclick = async () => {
     console.log("Resetting filters...");
