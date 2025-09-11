@@ -1,40 +1,103 @@
-/* Global Layout */
+/* ===== Global Layout ===== */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
   margin: 0;
   padding: 0;
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  background-size: cover;
-  background-attachment: fixed;
-  overflow-x: hidden;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
 }
 
-/* Navbar */
-.navbar {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.12);
-  padding: 12px 18px;
-  border-radius: 0 0 20px 20px;
-  backdrop-filter: blur(12px);
+/* ===== White Card Container ===== */
+.container {
+  background: white;
+  max-width: 500px;
   width: 100%;
-  box-sizing: border-box;
+  padding: 30px 25px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  margin-top: 30px;
+  text-align: center;
 }
-.navbar a {
-  text-decoration: none;
+
+/* ===== Heading ===== */
+.container h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.container p {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 25px;
+}
+
+/* ===== Fingerprint Icon Animation ===== */
+.fingerprint-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+
+/* ===== Verify Button ===== */
+.verify-btn {
+  display: inline-block;
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(to right, #667eea, #764ba2);
   color: white;
+  font-size: 18px;
   font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 25px;
-  transition: all 0.3s;
-  display: flex;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.verify-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+}
+
+/* ===== Status Text ===== */
+#status-text {
+  margin-top: 20px;
+  font-weight: bold;
+  font-size: 16px;
+  color: #444;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 15px;
+  }
+
+  .container h1 {
+    font-size: 24px;
+  }
+
+  .verify-btn {
+    font-size: 16px;
+  }
+
+  .fingerprint-icon {
+    font-size: 50px;
+  }
+}  display: flex;
   align-items: center;
   gap: 6px;
   font-size: 1rem;
