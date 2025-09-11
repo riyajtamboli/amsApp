@@ -43,6 +43,30 @@
       </div>
     </div>
 
+  <!-- ========================= WhatsApp Notifications ========================= -->
+<div class="card shadow p-3 mb-4">
+  <h5 class="mb-3">📱 WhatsApp Notifications</h5>
+  <div class="row g-2">
+    <div class="col-md-4">
+      <input
+        type="text"
+        id="whatsappPhone"
+        class="form-control"
+        placeholder="Enter WhatsApp Number (+91...)"
+      />
+    </div>
+    <div class="col-md-8 d-flex gap-2">
+      <button id="sendDailyReport" class="btn btn-success">
+        📊 Send Daily Report
+      </button>
+      <button id="sendAbsentAlerts" class="btn btn-danger">
+        🚨 Send Absent Alerts
+      </button>
+    </div>
+  </div>
+  <div id="whatsappStatus" class="mt-3 text-muted"></div>
+</div>
+
     <!-- Filter Section -->
     <div class="form-section glass-card">
       <h3>Filter Records</h3>
@@ -115,6 +139,7 @@
   <script src="attendance-records.js"></script>
 </body>
 </html>
+
 
 
 
