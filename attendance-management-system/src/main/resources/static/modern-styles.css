@@ -189,65 +189,88 @@ body {
   background: #f4f4f4;
 }
 /* WhatsApp Notifications Section */
-/* Card Styling (same as Filter Records) */
-#whatsapp-section {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #ffffff;
+/* WhatsApp Notification Section */
+.whatsapp-section {
+    background: #f9fdf9;
+    border: 1px solid #d6f5d6;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Title */
-#whatsapp-section .section-title {
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #1f2937;
+.whatsapp-section h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1f4e1f;
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
-/* Input Fields */
-#whatsapp-section .form-control {
-  height: 45px;
-  font-size: 0.95rem;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  box-shadow: none;
+.whatsapp-section h3 i {
+    margin-right: 8px;
+    color: #28a745;
 }
 
-/* Buttons uniform */
-#whatsapp-section .btn {
-  height: 45px;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* Layout for content */
+.whatsapp-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
 }
 
-/* Gradient Buttons */
-.btn-gradient-green {
-  background: linear-gradient(135deg, #22c55e, #15803d);
-  color: #fff;
-  border: none;
+/* Inputs */
+.whatsapp-content input {
+    flex: 1;
+    min-width: 220px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+    transition: 0.2s ease-in-out;
 }
 
-.btn-gradient-red {
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
-  color: #fff;
-  border: none;
+.whatsapp-content input:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 6px rgba(76, 175, 80, 0.3);
 }
 
-.btn-gradient-purple {
-  background: linear-gradient(135deg, #6366f1, #4338ca);
-  color: #fff;
-  border: none;
+/* Buttons */
+.whatsapp-btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
 }
 
-/* Hover */
-#whatsapp-section .btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  transition: all 0.2s ease-in-out;
+.whatsapp-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+.btn-green {
+    background: #28a745;
+    color: #fff;
+}
+
+.btn-red {
+    background: #dc3545;
+    color: #fff;
+}
+
+.btn-purple {
+    background: #6f42c1;
+    color: #fff;
+}
+
 
 
 
@@ -266,6 +289,7 @@ body {
     width: 100%;
   }
 }
+
 
 
 
