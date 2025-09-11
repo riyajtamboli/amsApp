@@ -91,6 +91,7 @@ input {
     margin-bottom: 20px;
     outline: none;
     transition: box-shadow 0.3s;
+    box-sizing: border-box; /* Added to prevent overflow */
 }
 
 input:focus {
