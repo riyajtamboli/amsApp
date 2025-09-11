@@ -189,14 +189,21 @@ body {
   background: #f4f4f4;
 }
 /* WhatsApp Notifications Section */
-/* WhatsApp Section Card */
+/* Same card style as Filter Records */
 #whatsapp-section {
-  border: 1px solid #d1fae5;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
-  background: #f9fffb;
+  background: #ffffff;
 }
 
-/* Gradient Button Styles */
+/* Title style same as Filter section */
+#whatsapp-section .section-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+
+/* Gradient Buttons */
 .btn-gradient-green {
   background: linear-gradient(135deg, #22c55e, #15803d);
   color: #fff;
@@ -215,7 +222,7 @@ body {
   border: none;
 }
 
-/* Hover effect */
+/* Hover Effect */
 .btn-gradient-green:hover,
 .btn-gradient-red:hover,
 .btn-gradient-purple:hover {
@@ -223,6 +230,7 @@ body {
   transform: translateY(-1px);
   transition: 0.2s ease-in-out;
 }
+
 
 
 /* ✅ Responsive Breakpoints */
@@ -240,5 +248,6 @@ body {
     width: 100%;
   }
 }
+
 
 
