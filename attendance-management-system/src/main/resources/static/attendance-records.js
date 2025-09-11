@@ -1,7 +1,6 @@
 // ========================= API Endpoints =========================
 const apiEmployees = "/api/employees";
 const apiRecords = "/api/attendance/records";
-const apiWhatsApp = "/api/whatsapp";
 
 // ========================= Fetch Functions =========================
 async function fetchEmployees() {
@@ -172,14 +171,18 @@ async function loadData(params = {}) {
 
     console.log("Filtered records:", filtered);
 
-    const dateSet = fromDate || toDate ? new Set([fromDate || toDate]) : null;
+    if (empId || fromDate || toDate || status) {
+      renderRecords(filtered, employees);
 
-    const filteredEmployees = empId
-      ? employees.filter(e => e.fingerprintId === empId)
-      : employees;
+      const dateSet = fromDate || toDate ? new Set([fromDate || toDate]) : null;
+      const filteredEmployees = empId
+        ? employees.filter(e => e.fingerprintId === empId)
+        : employees;
 
-    renderRecords(filtered, employees);
-    absentList = renderAbsentList(filteredEmployees, filtered, dateSet, true);
+      absentList = renderAbsentList(filteredEmployees, filtered, dateSet, true);
+    } else {
+      loadData(); // fallback if no filters
+    }
   };
 
   document.getElementById("resetFilters").onclick = async () => {
@@ -212,74 +215,46 @@ async function loadData(params = {}) {
 loadData();
 
 // ========================= WhatsApp API Calls =========================
-function showWhatsAppStatus(message, type) {
-  const statusDiv = document.getElementById("whatsappStatus");
-  statusDiv.textContent = message;
-  statusDiv.className = `whatsapp-status ${type}`;
-  statusDiv.style.display = "block";
-}
+const apiWhatsApp = "/api/whatsapp";
 
 async function sendDailyReport() {
   const phone = document.getElementById("reportPhoneNumber").value;
   if (!phone) {
-    showWhatsAppStatus("⚠️ Please enter a WhatsApp number", "error");
+    alert("⚠️ Please enter a WhatsApp number");
     return;
   }
 
-  try {
-    const res = await fetch(`${apiWhatsApp}/send-daily-report`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phoneNumber: phone }),
-    });
-    const data = await res.json();
-    showWhatsAppStatus(data.message || "✅ Daily report sent!", "success");
-  } catch (err) {
-    console.error(err);
-    showWhatsAppStatus("❌ Failed to send daily report", "error");
-  }
+  const res = await fetch(`${apiWhatsApp}/send-daily-report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phoneNumber: phone }),
+  });
+  const data = await res.json();
+
+  document.getElementById("whatsappStatus").style.display = "block";
+  document.getElementById("whatsappStatus").textContent =
+    data.success ? "✅ WhatsApp service working fine" : "❌ WhatsApp service failed";
 }
 
 async function sendAbsentAlerts() {
   const phone = document.getElementById("managerPhoneNumber").value;
   if (!phone) {
-    showWhatsAppStatus("⚠️ Please enter a manager WhatsApp number", "error");
+    alert("⚠️ Please enter a manager WhatsApp number");
     return;
   }
 
-  try {
-    const res = await fetch(`${apiWhatsApp}/send-absent-alerts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ managerPhone: phone }),
-    });
-    const data = await res.json();
-    showWhatsAppStatus(data.message || "✅ Absent alerts sent!", "success");
-  } catch (err) {
-    console.error(err);
-    showWhatsAppStatus("❌ Failed to send absent alerts", "error");
-  }
+  const res = await fetch(`${apiWhatsApp}/send-absent-alerts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ managerPhone: phone }),
+  });
+  const data = await res.json();
+
+  document.getElementById("whatsappStatus").style.display = "block";
+  document.getElementById("whatsappStatus").textContent =
+    data.success ? "✅ WhatsApp service working fine" : "❌ WhatsApp service failed";
 }
 
-async function testWhatsApp() {
-  try {
-    const res = await fetch(`${apiWhatsApp}/test`);
-    const data = await res.json();
-
-    // ✅ Check backend status/message instead of only HTTP code
-    if (res.ok && (!data.status || data.status.toLowerCase() === "success")) {
-      showWhatsAppStatus(data.message || "✅ WhatsApp service is working!", "success");
-    } else {
-      showWhatsAppStatus(data.message || "❌ WhatsApp service failed", "error");
-    }
-  } catch (err) {
-    console.error(err);
-    showWhatsAppStatus("❌ WhatsApp test failed", "error");
-  }
-}
-
-
-// ========================= Attach Events =========================
+// Attach events
 document.getElementById("dailyReportBtn").onclick = sendDailyReport;
 document.getElementById("absentAlertsBtn").onclick = sendAbsentAlerts;
-document.getElementById("testBtn").onclick = testWhatsApp;
