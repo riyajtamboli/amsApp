@@ -148,10 +148,7 @@ async function loadData(params = {}, filterMode = false) {
     document.getElementById("recordsBody").innerHTML =
       `<tr><td colspan="6" class="text-center text-muted">Apply filters to see attendance records</td></tr>`;
   } else {
-    // After filter → show filtered records
-    let absentList = renderAbsentList(employees, records, null, true);
-    renderRecords(records, employees);
-    return absentList;
+    // After filter handled separately
   }
 }
 
@@ -168,9 +165,12 @@ document.getElementById("applyFilters").onclick = async () => {
   if (fromDate) params.dateFrom = fromDate;
   if (toDate) params.dateTo = toDate;
 
-  let filtered = await fetchRecords(params);
+  // Fetch all records in date range
+  let records = await fetchRecords(params);
+  const employees = await fetchEmployees();
 
-  filtered = filtered.filter(r => {
+  // Filter records client-side
+  records = records.filter(r => {
     const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
     const statusComputed = getStatus(r);
 
@@ -180,10 +180,18 @@ document.getElementById("applyFilters").onclick = async () => {
     );
   });
 
-  console.log("Filtered records:", filtered);
+  console.log("Filtered records:", records);
 
-  if (filtered.length > 0) {
-    await loadData(params, true); // render with filtered data
+  if (records.length > 0) {
+    // Show only filtered records
+    renderRecords(records, employees);
+
+    // Show absent list only for the employees in filter scope
+    const filteredEmployees = empId
+      ? employees.filter(e => e.fingerprintId === empId)
+      : employees;
+
+    renderAbsentList(filteredEmployees, records, null, true);
   } else {
     document.getElementById("recordsBody").innerHTML =
       `<tr><td colspan="6" class="text-center text-muted">No matching records found</td></tr>`;
@@ -269,3 +277,4 @@ document.getElementById("absentAlertsBtn").onclick = sendAbsentAlerts;
 
 // ========================= Initialize =========================
 loadData();
+s
