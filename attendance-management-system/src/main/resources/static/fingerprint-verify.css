@@ -1,160 +1,176 @@
+/* General Body */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Navbar */
-/* Navbar */
 nav {
-  background: #2c3e50;
-  padding: 25px 20px;
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  align-items: center;
-  max-width: 320px;
-  margin: 30px auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 nav a {
-  text-decoration: none;
-  padding: 15px 25px;
-  width: 100%;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-weight: 600;
-  border-radius: 12px;
-  transition: background 0.3s, transform 0.2s;
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 14px;
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 nav a:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
 nav a.active {
-  background: orange;
-  color: black;
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
-/* Container (White Card Style) */
+
+@media (max-width: 768px) {
+    nav { padding: 15px; gap: 8px; }
+    nav a { padding: 10px 16px; font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+    nav { flex-direction: column; align-items: center; }
+    nav a { width: 200px; text-align: center; }
+}
+
+/* Main Container Style */
 .container {
-  max-width: 500px;
-  margin: 40px auto;
-  background: #fff;
-  padding: 25px 20px;
-  border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  text-align: center;
-  box-sizing: border-box;
+    max-width: 450px;
+    background: white;
+    padding: 30px 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
 }
 
 .container h2 {
-  font-size: 26px;
-  font-weight: 700;
-  margin-bottom: 5px;
-  color: #333;
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
 }
 
 .container p {
-  font-size: 16px;
-  color: #666;
-  margin-bottom: 20px;
+    font-size: 17px;
+    color: #666;
+    margin-bottom: 25px;
 }
 
-/* Input - FIXED */
+/* Input Styling */
 input {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin: 12px 0;
-  font-size: 16px;
-  text-align: center;
-  outline: none;
-  display: block;
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+    margin-bottom: 20px;
+    outline: none;
+    transition: box-shadow 0.3s;
 }
 
 input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+    border-color: #667eea;
+    box-shadow: 0 0 8px rgba(102, 126, 234, 0.5);
 }
 
 /* Buttons */
 .verify-button, .mark-button {
-  background: linear-gradient(to right, #667eea, #764ba2);
-  border: none;
-  padding: 12px 20px;
-  font-size: 16px;
-  color: white;
-  border-radius: 10px;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 10px;
-  font-weight: 600;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-sizing: border-box;
+    background: linear-gradient(to right, #667eea, #764ba2);
+    border: none;
+    padding: 14px 20px;
+    font-size: 16px;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .verify-button:hover, .mark-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 /* Employee Details */
 .employee-details {
-  background: #f9f9f9;
-  color: #1e3c72;
-  padding: 20px;
-  border-radius: 12px;
-  margin-top: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  text-align: left;
-  box-sizing: border-box;
+    background: #f9f9f9;
+    color: #1e3c72;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-align: left;
+}
+
+.employee-details h3 {
+    color: green;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.employee-details p {
+    font-size: 16px;
+    margin-bottom: 8px;
 }
 
 /* Not Found Message */
 .not-found {
-  background: linear-gradient(135deg, #ff6b6b, #ee5253);
-  color: white;
-  padding: 15px;
-  border-radius: 12px;
-  margin-top: 20px;
-  font-size: 15px;
-  font-weight: bold;
-  text-align: center;
+    background: linear-gradient(135deg, #ff6b6b, #ee5253);
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 20px;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
 }
 
 /* Success Message */
 .success-message {
-  color: green;
-  margin-top: 10px;
-  font-weight: bold;
+    color: green;
+    font-weight: bold;
+    margin-top: 15px;
+    font-size: 16px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .container {
-    margin: 20px;
-    padding: 20px 15px;
-  }
+/* Responsive Design */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px 15px;
+    }
 
-  input {
-    font-size: 15px;
-    padding: 10px;
-  }
+    .container h2 {
+        font-size: 24px;
+    }
 
-  .verify-button, .mark-button {
-    font-size: 15px;
-  }
-
-  .container h2 {
-    font-size: 22px;
-  }
+    .container p {
+        font-size: 15px;
+    }
 }
