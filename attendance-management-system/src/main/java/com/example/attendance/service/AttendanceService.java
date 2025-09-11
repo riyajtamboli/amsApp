@@ -23,6 +23,7 @@ public class AttendanceService {
 
     // New method for face recognition attendance
     public Attendance markAttendanceByFaceLabel(Integer label) {
+        // For demo, assume label maps to employee ID
         Employee emp = empRepo.findById(Long.valueOf(label)).orElse(null);
         if (emp == null) return null;
         return markAttendanceForEmployee(emp);
@@ -44,10 +45,12 @@ public class AttendanceService {
         if (att.getCheckIn() == null) {
             att.setCheckIn(LocalTime.now());
 
+            // Check if employee is late (after 9:30 AM)
             LocalTime currentTime = LocalTime.now();
             LocalTime lateThreshold = LocalTime.of(9, 30);
 
             if (currentTime.isAfter(lateThreshold)) {
+                // Send late arrival notification
                 whatsAppService.sendLateArrivalAlert(emp);
             }
         } else {
@@ -56,6 +59,7 @@ public class AttendanceService {
 
         Attendance savedAttendance = attRepo.save(att);
 
+        // Send WhatsApp confirmation for first check-in only
         if (isFirstCheckIn) {
             whatsAppService.sendAttendanceConfirmation(emp, savedAttendance);
         }
