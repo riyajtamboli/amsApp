@@ -148,7 +148,10 @@ async function loadData(params = {}, filterMode = false) {
     document.getElementById("recordsBody").innerHTML =
       `<tr><td colspan="6" class="text-center text-muted">Apply filters to see attendance records</td></tr>`;
   } else {
-    // After filter handled separately
+    // After filter → show filtered records
+    let absentList = renderAbsentList(employees, records, null, true);
+    renderRecords(records, employees);
+    return absentList;
   }
 }
 
@@ -164,34 +167,24 @@ document.getElementById("applyFilters").onclick = async () => {
   const params = {};
   if (fromDate) params.dateFrom = fromDate;
   if (toDate) params.dateTo = toDate;
+  if (status) params.status = status;   // ✅ now sending status to backend
 
-  // Fetch all records in date range
-  let records = await fetchRecords(params);
-  const employees = await fetchEmployees();
+  let filtered = await fetchRecords(params);
 
-  // Filter records client-side
-  records = records.filter(r => {
+  filtered = filtered.filter(r => {
     const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
     const statusComputed = getStatus(r);
 
     return (
       (!empId || recordEmpId === empId) &&
-      (!status || statusComputed === status.toUpperCase())
+      (!status || statusComputed === status.toUpperCase() || status === "ALL")
     );
   });
 
-  console.log("Filtered records:", records);
+  console.log("Filtered records:", filtered);
 
-  if (records.length > 0) {
-    // Show only filtered records
-    renderRecords(records, employees);
-
-    // Show absent list only for the employees in filter scope
-    const filteredEmployees = empId
-      ? employees.filter(e => e.fingerprintId === empId)
-      : employees;
-
-    renderAbsentList(filteredEmployees, records, null, true);
+  if (filtered.length > 0) {
+    await loadData(params, true); // render with filtered data
   } else {
     document.getElementById("recordsBody").innerHTML =
       `<tr><td colspan="6" class="text-center text-muted">No matching records found</td></tr>`;
@@ -277,4 +270,3 @@ document.getElementById("absentAlertsBtn").onclick = sendAbsentAlerts;
 
 // ========================= Initialize =========================
 loadData();
-s
