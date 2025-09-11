@@ -1,6 +1,7 @@
 // ========================= API Endpoints =========================
 const apiEmployees = "/api/employees";
 const apiRecords = "/api/attendance/records";
+const apiWhatsApp = "/api/whatsapp";
 
 // ========================= Fetch Functions =========================
 async function fetchEmployees() {
@@ -14,7 +15,6 @@ async function fetchRecords(params = {}) {
   if (query) url += "?" + query;
 
   console.log("Fetching records from:", url);
-
   const res = await fetch(url);
   return res.json();
 }
@@ -181,7 +181,10 @@ async function loadData(params = {}) {
 
       absentList = renderAbsentList(filteredEmployees, filtered, dateSet, true);
     } else {
-      loadData(); // fallback if no filters
+      document.getElementById("recordsBody").innerHTML =
+        `<tr><td colspan="6" class="text-center text-muted">No records to display. Apply filters.</td></tr>`;
+      document.querySelector("#absentTable tbody").innerHTML = "";
+      document.getElementById("absentCount").textContent = "No filter applied";
     }
   };
 
@@ -215,8 +218,6 @@ async function loadData(params = {}) {
 loadData();
 
 // ========================= WhatsApp API Calls =========================
-const apiWhatsApp = "/api/whatsapp";
-
 async function sendDailyReport() {
   const phone = document.getElementById("reportPhoneNumber").value;
   if (!phone) {
@@ -224,16 +225,25 @@ async function sendDailyReport() {
     return;
   }
 
-  const res = await fetch(`${apiWhatsApp}/send-daily-report`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phoneNumber: phone }),
-  });
-  const data = await res.json();
+  try {
+    const res = await fetch(`${apiWhatsApp}/send-daily-report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phoneNumber: phone }),
+    });
+    const data = await res.json();
 
-  document.getElementById("whatsappStatus").style.display = "block";
-  document.getElementById("whatsappStatus").textContent =
-    data.success ? "✅ WhatsApp service working fine" : "❌ WhatsApp service failed";
+    document.getElementById("whatsappStatus").style.display = "block";
+    document.getElementById("whatsappStatus").textContent =
+      data.success
+        ? "✅ WhatsApp service working fine"
+        : "❌ WhatsApp service failed";
+  } catch (err) {
+    console.error("WhatsApp error:", err);
+    document.getElementById("whatsappStatus").style.display = "block";
+    document.getElementById("whatsappStatus").textContent =
+      "❌ WhatsApp service failed (network/server error)";
+  }
 }
 
 async function sendAbsentAlerts() {
@@ -243,16 +253,25 @@ async function sendAbsentAlerts() {
     return;
   }
 
-  const res = await fetch(`${apiWhatsApp}/send-absent-alerts`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ managerPhone: phone }),
-  });
-  const data = await res.json();
+  try {
+    const res = await fetch(`${apiWhatsApp}/send-absent-alerts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ managerPhone: phone }),
+    });
+    const data = await res.json();
 
-  document.getElementById("whatsappStatus").style.display = "block";
-  document.getElementById("whatsappStatus").textContent =
-    data.success ? "✅ WhatsApp service working fine" : "❌ WhatsApp service failed";
+    document.getElementById("whatsappStatus").style.display = "block";
+    document.getElementById("whatsappStatus").textContent =
+      data.success
+        ? "✅ WhatsApp service working fine"
+        : "❌ WhatsApp service failed";
+  } catch (err) {
+    console.error("WhatsApp error:", err);
+    document.getElementById("whatsappStatus").style.display = "block";
+    document.getElementById("whatsappStatus").textContent =
+      "❌ WhatsApp service failed (network/server error)";
+  }
 }
 
 // Attach events
