@@ -1,106 +1,187 @@
 /* Global Layout */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-  background-size: cover;
-  background-attachment: fixed;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   margin: 0;
   padding: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  background-size: cover;
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
   justify-content: center;
-  color: #fff;
-}
-
-/* Container */
-.container {
-  background: rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 12px 18px;
+  border-radius: 0 0 20px 20px;
   backdrop-filter: blur(12px);
-  border-radius: 1.5rem;
-  padding: 2rem;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  margin: 1rem;
-}
-
-/* Title */
-.container h1 {
-  font-size: clamp(1.5rem, 5vw, 2rem);
-  margin-bottom: 1rem;
-  font-weight: bold;
-}
-
-/* Input Box */
-input[type="text"] {
   width: 100%;
-  padding: 0.8rem;
-  border-radius: 0.8rem;
-  border: none;
-  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+.navbar a {
+  text-decoration: none;
+  color: white;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 25px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 1rem;
-  outline: none;
+  white-space: nowrap;
+}
+.navbar a:hover,
+.navbar a.active {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Glass Card */
+.glass-card {
+  max-width: 600px;
+  width: 92%;
+  margin: 30px auto;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 25px;
+  color: white;
   text-align: center;
-  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+}
+
+/* Header */
+.header h1 {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+.header p {
+  opacity: 0.85;
+  font-size: 15px;
+}
+
+/* Input */
+.fingerprint-input {
+  width: 100%;
+  max-width: 380px;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  margin-top: 15px;
+  font-size: 15px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-sizing: border-box;
 }
 
 /* Buttons */
-button {
-  width: 100%;
-  padding: 0.8rem;
-  font-size: 1rem;
+.verify-button,
+.mark-attendance-button {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
   border: none;
-  border-radius: 0.8rem;
-  background: linear-gradient(90deg, #00c6ff, #0072ff);
-  color: #fff;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 30px;
   cursor: pointer;
-  transition: 0.3s ease-in-out;
+  transition: all 0.3s;
+  margin-top: 18px;
+  width: 100%;
+  max-width: 250px;
+}
+.verify-button:hover,
+.mark-attendance-button:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
 }
 
-button:hover {
-  transform: scale(1.05);
-  background: linear-gradient(90deg, #0072ff, #00c6ff);
+/* Employee Card */
+.employee-info-card {
+  background: white;
+  color: #333;
+  border-radius: 15px;
+  padding: 18px;
+  margin-top: 18px;
+  text-align: left;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  box-sizing: border-box;
+}
+.employee-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e3c72;
+}
+.employee-detail-item {
+  margin: 5px 0;
 }
 
-/* Navigation buttons */
-.nav-buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.nav-buttons a {
-  flex: 1;
+/* Status */
+.marked-status {
+  margin-top: 18px;
+  padding: 12px;
+  background: #d4edda;
+  border-radius: 10px;
+  color: #155724;
+  font-weight: 600;
   text-align: center;
-  padding: 0.7rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 1rem;
-  font-weight: 500;
-  text-decoration: none;
-  color: #fff;
-  transition: background 0.3s ease;
 }
 
-.nav-buttons a:hover {
-  background: rgba(255, 255, 255, 0.4);
-}
-
-/* Responsive Adjustments */
-@media (max-width: 600px) {
-  .container {
-    padding: 1.5rem;
-    max-width: 95%;
+/* ---------------- */
+/* Responsive */
+/* ---------------- */
+@media (max-width: 768px) {
+  .navbar {
+    gap: 8px;
+    padding: 10px;
   }
+  .navbar a {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+  }
+  .glass-card {
+    padding: 20px;
+  }
+  .header h1 {
+    font-size: 22px;
+  }
+  .verify-button,
+  .mark-attendance-button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
 
-  .nav-buttons {
+@media (max-width: 480px) {
+  .navbar {
     flex-direction: column;
+    align-items: center;
+    gap: 6px;
   }
-
-  .nav-buttons a {
+  .navbar a {
     width: 100%;
+    justify-content: center;
+  }
+  .glass-card {
+    width: 95%;
+    padding: 15px;
+  }
+  .header h1 {
+    font-size: 20px;
+  }
+  .fingerprint-input {
+    font-size: 14px;
   }
 }
