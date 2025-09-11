@@ -25,9 +25,8 @@ async function fetchRecords(params = {}) {
 function renderStats(records, employees) {
   const today = new Date().toISOString().split("T")[0];
   const presentToday = records.filter(
-    r => r.date === today && (r.checkIn || r.status?.toUpperCase() === "PRESENT")
+    r => r.date === today && (r.status?.toUpperCase() === "PRESENT")
   ).length;
-
   const totalEmployees = employees.length;
   const rate =
     totalEmployees > 0
@@ -43,39 +42,34 @@ function renderStats(records, employees) {
 // Absent
 function renderAbsent(employees, records, filterMode = false) {
   const today = new Date().toISOString().split("T")[0];
+
   const targetDate = filterMode ? null : today;
 
-  // ✅ consider checkIn OR status
   const presentFps = records
     .filter(r =>
       (!targetDate || r.date === targetDate) &&
-      (r.checkIn || r.status?.toUpperCase() === "PRESENT")
+      (r.status?.toUpperCase() === "PRESENT")
     )
     .map(r => r.fingerprintId || r.employee?.fingerprintId);
 
   const absent = employees.filter(e => !presentFps.includes(e.fingerprintId));
 
   document.getElementById("absentCount").textContent = filterMode
-    ? `${absent.length} employees absent in filtered data`
-    : `${absent.length} employees absent on ${today}`;
+    ? ${absent.length} employees absent in filtered data
+    : ${absent.length} employees absent on ${today};
 
   const tbody = document.querySelector("#absentTable tbody");
-  tbody.innerHTML =
-    absent.length > 0
-      ? absent
-          .map(
-            e => `
-          <tr>
-            <td>${e.fingerprintId}</td>
-            <td>${e.name}</td>
-            <td>${e.department || "-"}</td>
-            <td style="color:red;font-weight:bold">ABSENT</td>
-          </tr>`
-          )
-          .join("")
-      : `<tr><td colspan="4" style="text-align:center;color:green;font-weight:bold">
-          🎉 No absentees today!
-        </td></tr>`;
+  tbody.innerHTML = absent
+    .map(
+      e => `
+      <tr>
+        <td>${e.fingerprintId}</td>
+        <td>${e.name}</td>
+        <td>${e.department || "-"}</td>
+        <td style="color:red;font-weight:bold">ABSENT</td>
+      </tr>`
+    )
+    .join("");
 
   return absent;
 }
@@ -97,9 +91,9 @@ function renderRecords(records, employees) {
           <td>${r.fingerprintId || r.employee?.fingerprintId || "-"}</td>
           <td>${emp.department || "-"}</td>
           <td style="font-weight:bold; color:${
-            (r.checkIn || r.status?.toUpperCase() === "PRESENT") ? "green" : "red"
+            (r.status?.toUpperCase() === "PRESENT") ? "green" : "red"
           }">
-            ${(r.checkIn || r.status) ? "PRESENT" : "ABSENT"}
+            ${r.status || "-"}
           </td>
         </tr>
       `;
@@ -133,11 +127,11 @@ async function loadData(params = {}) {
   const empSelect = document.getElementById("employeeFilter");
   if (empSelect.options.length <= 1) {
     empSelect.innerHTML =
-      `<option value="">All Employees</option>` +
+      <option value="">All Employees</option> +
       employees
         .map(
           e =>
-            `<option value="${e.fingerprintId}">${e.name} (${e.fingerprintId})</option>`
+            <option value="${e.fingerprintId}">${e.name} (${e.fingerprintId})</option>
         )
         .join("");
   }
@@ -157,4 +151,58 @@ async function loadData(params = {}) {
 
     const params = {};
     if (fromDate) params.dateFrom = fromDate;
-   
+    if (toDate) params.dateTo = toDate;
+
+    let filtered = await fetchRecords(params);
+
+    // ✅ Normalize case + compute status dynamically
+    filtered = filtered.filter(r => {
+      const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
+      const statusComputed = r.checkIn ? "PRESENT" : "ABSENT";
+
+      return (
+        (!empId || recordEmpId === empId) &&
+        (!status || statusComputed.toUpperCase() === status.toUpperCase())
+      );
+    });
+
+    console.log("Filtered records:", filtered);
+
+    // ✅ If empId is selected, restrict employee list
+    const filteredEmployees = empId
+      ? employees.filter(e => e.fingerprintId === empId)
+      : employees;
+
+    // ✅ Re-render with filtered employees only
+    renderRecords(filtered, employees);
+    absentList = renderAbsent(filteredEmployees, filtered, true);
+  };
+
+  document.getElementById("resetFilters").onclick = async () => {
+    console.log("Resetting filters...");
+    document.getElementById("employeeFilter").value = "";
+    document.getElementById("fromDate").value = "";
+    document.getElementById("toDate").value = "";
+    document.getElementById("statusFilter").value = "";
+    loadData(); // reload all
+  };
+
+  document.getElementById("refreshData").onclick = () => loadData();
+
+  // Export CSV
+  document.getElementById("exportCsv").onclick = () => {
+    exportCsvFile(records, "attendance_records.csv");
+  };
+
+  document.getElementById("exportAbsentCsv").onclick = () => {
+    const absentData = absentList.map(e => ({
+      fingerprintId: e.fingerprintId,
+      name: e.name,
+      department: e.department,
+      status: "ABSENT"
+    }));
+    exportCsvFile(absentData, "absent_employees.csv");
+  };
+}
+
+loadData();
