@@ -27,6 +27,7 @@ function renderStats(records, employees) {
   const presentToday = records.filter(
     r => r.date === today && (r.status?.toUpperCase() === "PRESENT")
   ).length;
+
   const totalEmployees = employees.length;
   const rate =
     totalEmployees > 0
@@ -39,14 +40,14 @@ function renderStats(records, employees) {
   document.getElementById("attendanceRate").textContent = rate + "%";
 }
 
-// Absent
-function renderAbsent(employees, records, filterMode = false) {
+// Absent Employees
+function renderAbsentList(employees, records, dateSet = null, filterMode = false) {
   const today = new Date().toISOString().split("T")[0];
-  const targetDate = filterMode ? null : today;
+  const targetDates = dateSet || new Set([today]);
 
   const presentFps = records
     .filter(r =>
-      (!targetDate || r.date === targetDate) &&
+      targetDates.has(r.date) &&
       (r.status?.toUpperCase() === "PRESENT")
     )
     .map(r => r.fingerprintId || r.employee?.fingerprintId);
@@ -58,25 +59,22 @@ function renderAbsent(employees, records, filterMode = false) {
     : `${absent.length} employees absent on ${today}`;
 
   const tbody = document.querySelector("#absentTable tbody");
-  tbody.innerHTML = absent.length
-    ? absent
-        .map(
-          e => `
-          <tr>
-            <td>${e.fingerprintId}</td>
-            <td>${e.name}</td>
-            <td>${e.department || "-"}</td>
-            <td style="color:red;font-weight:bold">ABSENT</td>
-          </tr>`
-        )
-        .join("")
-    : `<tr><td colspan="4">No absent employees</td></tr>`;
+  tbody.innerHTML = absent
+    .map(
+      e => `
+      <tr>
+        <td>${e.fingerprintId}</td>
+        <td>${e.name}</td>
+        <td>${e.department || "-"}</td>
+        <td style="color:red;font-weight:bold">ABSENT</td>
+      </tr>`
+    )
+    .join("");
 
   return absent;
 }
 
-
-// Records Table
+// Attendance Records Table
 function renderRecords(records, employees) {
   const tbody = document.getElementById("recordsBody");
   tbody.innerHTML = records
@@ -129,17 +127,17 @@ async function loadData(params = {}) {
   const empSelect = document.getElementById("employeeFilter");
   if (empSelect.options.length <= 1) {
     empSelect.innerHTML =
-      <option value="">All Employees</option> +
+      `<option value="">All Employees</option>` +
       employees
         .map(
           e =>
-            <option value="${e.fingerprintId}">${e.name} (${e.fingerprintId})</option>
+            `<option value="${e.fingerprintId}">${e.name} (${e.fingerprintId})</option>`
         )
         .join("");
   }
 
   renderStats(records, employees);
-  let absentList = renderAbsent(employees, records);
+  let absentList = renderAbsentList(employees, records);
   renderRecords(records, employees);
 
   // Filters
@@ -157,10 +155,10 @@ async function loadData(params = {}) {
 
     let filtered = await fetchRecords(params);
 
-    // ✅ Normalize case + compute status dynamically
+    // Normalize case + compute status
     filtered = filtered.filter(r => {
       const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
-      const statusComputed = r.checkIn ? "PRESENT" : "ABSENT";
+      const statusComputed = r.checkIn ? "PRESENT" : (r.status || "ABSENT");
 
       return (
         (!empId || recordEmpId === empId) &&
@@ -170,25 +168,26 @@ async function loadData(params = {}) {
 
     console.log("Filtered records:", filtered);
 
-    // ✅ If empId is selected, restrict employee list
     const filteredEmployees = empId
       ? employees.filter(e => e.fingerprintId === empId)
       : employees;
 
-    // ✅ Re-render with filtered employees only
     renderRecords(filtered, employees);
-    absentList = renderAbsent(filteredEmployees, filtered, true);
+
+    const dateSet = fromDate || toDate ? new Set([fromDate || toDate]) : null;
+    absentList = renderAbsentList(filteredEmployees, filtered, dateSet, true);
   };
 
-  document.getElementById("resetFilters").onclick = async () => {
-    console.log("Resetting filters...");
+  // Reset Filters
+  document.getElementById("resetFilters").onclick = () => {
     document.getElementById("employeeFilter").value = "";
     document.getElementById("fromDate").value = "";
     document.getElementById("toDate").value = "";
     document.getElementById("statusFilter").value = "";
-    loadData(); // reload all
+    loadData();
   };
 
+  // Refresh Button
   document.getElementById("refreshData").onclick = () => loadData();
 
   // Export CSV
@@ -207,4 +206,5 @@ async function loadData(params = {}) {
   };
 }
 
+// Initialize
 loadData();
