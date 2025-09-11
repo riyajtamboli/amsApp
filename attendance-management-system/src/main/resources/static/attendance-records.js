@@ -212,3 +212,46 @@ async function loadData(params = {}) {
 }
 
 loadData();
+// ========================= WhatsApp API Calls =========================
+const apiWhatsApp = "/api/whatsapp";
+
+async function sendDailyReport() {
+  const phone = document.getElementById("whatsappPhone").value;
+  if (!phone) {
+    alert("⚠️ Please enter a WhatsApp number");
+    return;
+  }
+
+  const res = await fetch(`${apiWhatsApp}/send-daily-report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phoneNumber: phone }),
+  });
+  const data = await res.json();
+
+  document.getElementById("whatsappStatus").textContent =
+    data.message || "Something went wrong";
+}
+
+async function sendAbsentAlerts() {
+  const phone = document.getElementById("whatsappPhone").value;
+  if (!phone) {
+    alert("⚠️ Please enter a manager WhatsApp number");
+    return;
+  }
+
+  const res = await fetch(`${apiWhatsApp}/send-absent-alerts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ managerPhone: phone }),
+  });
+  const data = await res.json();
+
+  document.getElementById("whatsappStatus").textContent =
+    data.message || "Something went wrong";
+}
+
+// Attach events
+document.getElementById("sendDailyReport").onclick = sendDailyReport;
+document.getElementById("sendAbsentAlerts").onclick = sendAbsentAlerts;
+s
