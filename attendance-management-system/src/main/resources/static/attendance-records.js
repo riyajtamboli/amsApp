@@ -265,16 +265,19 @@ async function testWhatsApp() {
   try {
     const res = await fetch(`${apiWhatsApp}/test`);
     const data = await res.json();
-    if (res.ok) {
+
+    // ✅ Check backend status/message instead of only HTTP code
+    if (res.ok && (!data.status || data.status.toLowerCase() === "success")) {
       showWhatsAppStatus(data.message || "✅ WhatsApp service is working!", "success");
     } else {
-      showWhatsAppStatus("❌ WhatsApp service failed", "error");
+      showWhatsAppStatus(data.message || "❌ WhatsApp service failed", "error");
     }
   } catch (err) {
     console.error(err);
     showWhatsAppStatus("❌ WhatsApp test failed", "error");
   }
 }
+
 
 // ========================= Attach Events =========================
 document.getElementById("dailyReportBtn").onclick = sendDailyReport;
