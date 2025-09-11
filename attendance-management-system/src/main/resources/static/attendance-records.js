@@ -1,7 +1,6 @@
 // ========================= API Endpoints =========================
 const apiEmployees = "/api/employees";
 const apiRecords = "/api/attendance/records";
-const apiWhatsApp = "/api/whatsapp";
 
 // ========================= Fetch Functions =========================
 async function fetchEmployees() {
@@ -15,6 +14,7 @@ async function fetchRecords(params = {}) {
   if (query) url += "?" + query;
 
   console.log("Fetching records from:", url);
+
   const res = await fetch(url);
   return res.json();
 }
@@ -120,7 +120,7 @@ function exportCsvFile(data, filename) {
 }
 
 // ========================= Main Loader =========================
-async function loadData(params = {}) {
+async function loadData(params = {}, filterMode = false) {
   const employees = await fetchEmployees();
   const records = await fetchRecords(params);
 
@@ -141,83 +141,90 @@ async function loadData(params = {}) {
   }
 
   renderStats(records, employees);
-  let absentList = renderAbsentList(employees, records);
-  renderRecords(records, employees);
 
-  // Filters
-  document.getElementById("applyFilters").onclick = async () => {
-    const empId = document.getElementById("employeeFilter").value;
-    const fromDate = document.getElementById("fromDate").value;
-    const toDate = document.getElementById("toDate").value;
-    const status = document.getElementById("statusFilter").value;
-
-    console.log("Applying filters:", { empId, fromDate, toDate, status });
-
-    const params = {};
-    if (fromDate) params.dateFrom = fromDate;
-    if (toDate) params.dateTo = toDate;
-
-    let filtered = await fetchRecords(params);
-
-    filtered = filtered.filter(r => {
-      const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
-      const statusComputed = getStatus(r);
-
-      return (
-        (!empId || recordEmpId === empId) &&
-        (!status || statusComputed === status.toUpperCase())
-      );
-    });
-
-    console.log("Filtered records:", filtered);
-
-    if (empId || fromDate || toDate || status) {
-      renderRecords(filtered, employees);
-
-      const dateSet = fromDate || toDate ? new Set([fromDate || toDate]) : null;
-      const filteredEmployees = empId
-        ? employees.filter(e => e.fingerprintId === empId)
-        : employees;
-
-      absentList = renderAbsentList(filteredEmployees, filtered, dateSet, true);
-    } else {
-      document.getElementById("recordsBody").innerHTML =
-        `<tr><td colspan="6" class="text-center text-muted">No records to display. Apply filters.</td></tr>`;
-      document.querySelector("#absentTable tbody").innerHTML = "";
-      document.getElementById("absentCount").textContent = "No filter applied";
-    }
-  };
-
-  document.getElementById("resetFilters").onclick = async () => {
-    console.log("Resetting filters...");
-    document.getElementById("employeeFilter").value = "";
-    document.getElementById("fromDate").value = "";
-    document.getElementById("toDate").value = "";
-    document.getElementById("statusFilter").value = "";
-    loadData(); // reload all
-  };
-
-  document.getElementById("refreshData").onclick = () => loadData();
-
-  // Export CSV
-  document.getElementById("exportCsv").onclick = () => {
-    exportCsvFile(records, "attendance_records.csv");
-  };
-
-  document.getElementById("exportAbsentCsv").onclick = () => {
-    const absentData = absentList.map(e => ({
-      fingerprintId: e.fingerprintId,
-      name: e.name,
-      department: e.department,
-      status: "ABSENT"
-    }));
-    exportCsvFile(absentData, "absent_employees.csv");
-  };
+  if (!filterMode) {
+    // Initial load → show absent list only
+    renderAbsentList(employees, records);
+    document.getElementById("recordsBody").innerHTML =
+      `<tr><td colspan="6" class="text-center text-muted">Apply filters to see attendance records</td></tr>`;
+  } else {
+    // After filter → show filtered records
+    let absentList = renderAbsentList(employees, records, null, true);
+    renderRecords(records, employees);
+    return absentList;
+  }
 }
 
-loadData();
+// ========================= Apply Filters =========================
+document.getElementById("applyFilters").onclick = async () => {
+  const empId = document.getElementById("employeeFilter").value;
+  const fromDate = document.getElementById("fromDate").value;
+  const toDate = document.getElementById("toDate").value;
+  const status = document.getElementById("statusFilter").value;
+
+  console.log("Applying filters:", { empId, fromDate, toDate, status });
+
+  const params = {};
+  if (fromDate) params.dateFrom = fromDate;
+  if (toDate) params.dateTo = toDate;
+
+  let filtered = await fetchRecords(params);
+
+  filtered = filtered.filter(r => {
+    const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
+    const statusComputed = getStatus(r);
+
+    return (
+      (!empId || recordEmpId === empId) &&
+      (!status || statusComputed === status.toUpperCase())
+    );
+  });
+
+  console.log("Filtered records:", filtered);
+
+  if (filtered.length > 0) {
+    await loadData(params, true); // render with filtered data
+  } else {
+    document.getElementById("recordsBody").innerHTML =
+      `<tr><td colspan="6" class="text-center text-muted">No matching records found</td></tr>`;
+    document.querySelector("#absentTable tbody").innerHTML = "";
+    document.getElementById("absentCount").textContent = "No absentees found";
+  }
+};
+
+// ========================= Reset & Refresh =========================
+document.getElementById("resetFilters").onclick = async () => {
+  console.log("Resetting filters...");
+  document.getElementById("employeeFilter").value = "";
+  document.getElementById("fromDate").value = "";
+  document.getElementById("toDate").value = "";
+  document.getElementById("statusFilter").value = "";
+  loadData(); // reload all
+};
+
+document.getElementById("refreshData").onclick = () => loadData();
+
+// ========================= CSV Export Buttons =========================
+document.getElementById("exportCsv").onclick = async () => {
+  const records = await fetchRecords();
+  exportCsvFile(records, "attendance_records.csv");
+};
+
+document.getElementById("exportAbsentCsv").onclick = async () => {
+  const employees = await fetchEmployees();
+  const records = await fetchRecords();
+  const absentData = renderAbsentList(employees, records).map(e => ({
+    fingerprintId: e.fingerprintId,
+    name: e.name,
+    department: e.department,
+    status: "ABSENT"
+  }));
+  exportCsvFile(absentData, "absent_employees.csv");
+};
 
 // ========================= WhatsApp API Calls =========================
+const apiWhatsApp = "/api/whatsapp";
+
 async function sendDailyReport() {
   const phone = document.getElementById("reportPhoneNumber").value;
   if (!phone) {
@@ -225,25 +232,16 @@ async function sendDailyReport() {
     return;
   }
 
-  try {
-    const res = await fetch(`${apiWhatsApp}/send-daily-report`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phoneNumber: phone }),
-    });
-    const data = await res.json();
+  const res = await fetch(`${apiWhatsApp}/send-daily-report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phoneNumber: phone }),
+  });
+  const data = await res.json();
 
-    document.getElementById("whatsappStatus").style.display = "block";
-    document.getElementById("whatsappStatus").textContent =
-      data.success
-        ? "✅ WhatsApp service working fine"
-        : "❌ WhatsApp service failed";
-  } catch (err) {
-    console.error("WhatsApp error:", err);
-    document.getElementById("whatsappStatus").style.display = "block";
-    document.getElementById("whatsappStatus").textContent =
-      "❌ WhatsApp service failed (network/server error)";
-  }
+  document.getElementById("whatsappStatus").style.display = "block";
+  document.getElementById("whatsappStatus").textContent =
+    data.success ? "✅ WhatsApp service working fine" : "❌ WhatsApp service failed";
 }
 
 async function sendAbsentAlerts() {
@@ -253,27 +251,21 @@ async function sendAbsentAlerts() {
     return;
   }
 
-  try {
-    const res = await fetch(`${apiWhatsApp}/send-absent-alerts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ managerPhone: phone }),
-    });
-    const data = await res.json();
+  const res = await fetch(`${apiWhatsApp}/send-absent-alerts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ managerPhone: phone }),
+  });
+  const data = await res.json();
 
-    document.getElementById("whatsappStatus").style.display = "block";
-    document.getElementById("whatsappStatus").textContent =
-      data.success
-        ? "✅ WhatsApp service working fine"
-        : "❌ WhatsApp service failed";
-  } catch (err) {
-    console.error("WhatsApp error:", err);
-    document.getElementById("whatsappStatus").style.display = "block";
-    document.getElementById("whatsappStatus").textContent =
-      "❌ WhatsApp service failed (network/server error)";
-  }
+  document.getElementById("whatsappStatus").style.display = "block";
+  document.getElementById("whatsappStatus").textContent =
+    data.success ? "✅ WhatsApp service working fine" : "❌ WhatsApp service failed";
 }
 
 // Attach events
 document.getElementById("dailyReportBtn").onclick = sendDailyReport;
 document.getElementById("absentAlertsBtn").onclick = sendAbsentAlerts;
+
+// ========================= Initialize =========================
+loadData();
