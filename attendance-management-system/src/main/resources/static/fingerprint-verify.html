@@ -427,6 +427,8 @@
 
             try {
                 const response = await fetch(`http://localhost:8092/api/employees/fingerprint/${fingerprintId}`);
+
+
                 
                 if (!response.ok) {
                     showMessage(`Employee not found with fingerprint ID: ${fingerprintId}`, 'error');
@@ -484,14 +486,12 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch('http://localhost:8092/api/attendance/mark', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        fingerprintId: currentEmployee.fingerprintId
-                    })
+             fetch("https://your-backend-service.up.railway.app/api/attendance/mark", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fingerprintId })
+})
+
                 });
 
                 if (response.ok) {
@@ -557,3 +557,4 @@
     </script>
 </body>
 </html>
+
