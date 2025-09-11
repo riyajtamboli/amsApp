@@ -1,158 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fingerprint Verification - Attendance System</title>
-    <link rel="stylesheet" href="fingerprint-verify.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fingerprint Verification - Attendance System</title>
+  <link rel="stylesheet" href="fingerprint-verify.css" />
 
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            background: linear-gradient(135deg, #6a11cb, #2575fc);
-            min-height: 100vh;
-        }
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      min-height: 100vh;
+    }
 
-        .container {
-            max-width: 500px;
-            margin: 50px auto;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 30px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            text-align: center;
-            color: white;
-        }
+    /* Navbar */
+    nav {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    nav a {
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+    nav a:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    nav a.active {
+      background: orange;
+      color: black;
+      font-weight: bold;
+    }
 
-        h2 {
-            margin-bottom: 10px;
-        }
+    /* Container */
+    .container {
+      max-width: 500px;
+      margin: 50px auto;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 30px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      text-align: center;
+      color: white;
+    }
 
-        input {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            margin: 15px 0;
-            font-size: 16px;
-            text-align: center;
-        }
+    h2 {
+      margin-bottom: 10px;
+    }
 
-        .verify-button {
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-size: 16px;
+      text-align: center;
+    }
 
-        .verify-button:hover {
-            background: linear-gradient(45deg, #00c6ff, #0072ff);
-        }
+    .verify-button, .mark-button {
+      background: linear-gradient(45deg, #4facfe, #00f2fe);
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+    .verify-button:hover, .mark-button:hover {
+      background: linear-gradient(45deg, #00c6ff, #0072ff);
+    }
 
-        .employee-details {
-            background: white;
-            color: #1e3c72;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
+    .employee-details {
+      background: white;
+      color: #1e3c72;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
 
-        #employeeNotFound {
-            background: linear-gradient(135deg, #ff6b6b, #ee5253);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            font-size: 16px;
-            font-weight: bold;
-        }
-    </style>
+    #employeeNotFound {
+      background: linear-gradient(135deg, #ff6b6b, #ee5253);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .success-message {
+      color: green;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>👆 Fingerprint Verification</h2>
-        <p>Secure attendance marking with fingerprint authentication</p>
 
-        <input type="text" id="fingerprintId" placeholder="Enter Fingerprint ID" />
+  <!-- Navbar -->
+  <nav>
+    <a href="index.html">🏠 Home</a>
+    <a href="add-employee.html">➕ Add Employee</a>
+    <a href="view-employees.html">👥 View Employees</a>
+    <a href="fingerprint-verify.html" class="active">🔍 Verify Attendance</a>
+    <a href="attendance-records.html">📅 Records</a>
+  </nav>
 
-        <button class="verify-button" onclick="markAttendance()">🔍 Verify Employee</button>
+  <!-- Fingerprint Verification Box -->
+  <div class="container">
+    <h2>👆 Fingerprint Verification</h2>
+    <p>Secure attendance marking with fingerprint authentication</p>
 
-        <!-- Employee details section (hidden by default) -->
-        <div id="employeeDetails" class="employee-details" style="display: none;">
-            <h3>✅ Employee Verified</h3>
-            <div id="employeeInfo" style="text-align: left;"></div>
-        </div>
+    <input type="text" id="fingerprintId" placeholder="Enter Fingerprint ID" />
 
-        <!-- Employee not found section (hidden by default) -->
-        <div id="employeeNotFound" style="display: none;">
-            ❌ Employee Not Found with this Fingerprint ID
-        </div>
+    <button class="verify-button" onclick="markAttendance()">🔍 Verify Employee</button>
+
+    <!-- Employee details section -->
+    <div id="employeeDetails" class="employee-details" style="display: none;">
+      <h3>✅ Employee Verified</h3>
+      <div id="employeeInfo" style="text-align: left;"></div>
+
+      <button class="mark-button" id="markBtn" onclick="saveAttendance()">📝 Mark Attendance</button>
+      <div id="attendanceMessage" class="success-message" style="display: none;">Attendance Marked Successfully ✅</div>
     </div>
 
-    <script>
-        let currentEmployee = null;
+    <!-- Employee not found section -->
+    <div id="employeeNotFound" style="display: none;">
+      ❌ Employee Not Found with this Fingerprint ID
+    </div>
+  </div>
 
-        async function markAttendance() {
-            const fingerprintIdInput = document.getElementById('fingerprintId');
-            const fingerprintId = fingerprintIdInput.value.trim().toUpperCase();
-            if (!fingerprintId) {
-                alert("Please enter a fingerprint ID");
-                return;
-            }
+  <script>
+    let currentEmployee = null;
 
-            const btn = document.querySelector('.verify-button');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '⏳ Verifying...';
-            btn.disabled = true;
+    async function markAttendance() {
+      const fingerprintIdInput = document.getElementById('fingerprintId');
+      const fingerprintId = fingerprintIdInput.value.trim().toUpperCase();
+      if (!fingerprintId) {
+        alert("Please enter a fingerprint ID");
+        return;
+      }
 
-            try {
-                const response = await fetch(`https://amsapplication.up.railway.app/api/employees/fingerprint/${fingerprintId}`);
+      const btn = document.querySelector('.verify-button');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '⏳ Verifying...';
+      btn.disabled = true;
 
-                if (!response.ok) {
-                    // Hide verified section
-                    document.getElementById('employeeDetails').style.display = 'none';
-                    // Show error section
-                    document.getElementById('employeeNotFound').style.display = 'block';
-                    fingerprintIdInput.value = ""; // clear input
-                    return;
-                }
+      try {
+        const response = await fetch(`https://amsapplication.up.railway.app/api/employees/fingerprint/${fingerprintId}`);
 
-                const employee = await response.json();
-                currentEmployee = employee;
-
-                // Hide error section
-                document.getElementById('employeeNotFound').style.display = 'none';
-                // Show employee details
-                showEmployeeDetails(employee);
-
-            } catch (error) {
-                document.getElementById('employeeDetails').style.display = 'none';
-                document.getElementById('employeeNotFound').style.display = 'block';
-                fingerprintIdInput.value = ""; // clear input
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+        if (!response.ok) {
+          document.getElementById('employeeDetails').style.display = 'none';
+          document.getElementById('employeeNotFound').style.display = 'block';
+          fingerprintIdInput.value = "";
+          return;
         }
 
-        function showEmployeeDetails(employee) {
-            const detailsDiv = document.getElementById('employeeInfo');
-            detailsDiv.innerHTML = `
-                <p><strong>ID:</strong> ${employee.fingerprintId}</p>
-                <p><strong>Name:</strong> ${employee.name}</p>
-                <p><strong>Department:</strong> ${employee.department}</p>
-                <p><strong>Status:</strong> ✅ Present</p>
-            `;
-            document.getElementById('employeeDetails').style.display = 'block';
+        const employee = await response.json();
+        currentEmployee = employee;
+
+        document.getElementById('employeeNotFound').style.display = 'none';
+        showEmployeeDetails(employee);
+
+      } catch (error) {
+        document.getElementById('employeeDetails').style.display = 'none';
+        document.getElementById('employeeNotFound').style.display = 'block';
+        fingerprintIdInput.value = "";
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    function showEmployeeDetails(employee) {
+      const detailsDiv = document.getElementById('employeeInfo');
+      detailsDiv.innerHTML = `
+        <p><strong>ID:</strong> ${employee.fingerprintId}</p>
+        <p><strong>Name:</strong> ${employee.name}</p>
+        <p><strong>Department:</strong> ${employee.department}</p>
+      `;
+      document.getElementById('employeeDetails').style.display = 'block';
+      document.getElementById('attendanceMessage').style.display = 'none';
+      document.getElementById('markBtn').disabled = false;
+    }
+
+    async function saveAttendance() {
+      if (!currentEmployee) return;
+
+      const markBtn = document.getElementById('markBtn');
+      markBtn.disabled = true;
+      markBtn.innerText = "⏳ Marking...";
+
+      try {
+        const response = await fetch(`https://amsapplication.up.railway.app/api/attendance/mark`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fingerprintId: currentEmployee.fingerprintId })
+        });
+
+        if (!response.ok) {
+          alert("Failed to mark attendance");
+          markBtn.disabled = false;
+          markBtn.innerText = "📝 Mark Attendance";
+          return;
         }
-    </script>
+
+        document.getElementById('attendanceMessage').style.display = 'block';
+        markBtn.innerText = "✅ Attendance Marked";
+
+      } catch (error) {
+        alert("Error saving attendance");
+        markBtn.disabled = false;
+        markBtn.innerText = "📝 Mark Attendance";
+      }
+    }
+  </script>
 </body>
 </html>
