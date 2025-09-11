@@ -60,7 +60,6 @@ nav a.active {
 /* Main Container Style */
 .container {
     max-width: 800px;
-    margin:auto;
     background: white;
     padding: 30px 20px;
     border-radius: 20px;
