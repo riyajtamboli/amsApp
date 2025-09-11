@@ -215,22 +215,13 @@ async function loadData(params = {}) {
 loadData();
 
 // ========================= WhatsApp API Calls =========================
-function updateWhatsAppStatus(success, message) {
-  const statusBox = document.getElementById("whatsappStatus");
-  statusBox.style.display = "block";
-  if (success) {
-    statusBox.className = "whatsapp-status success";
-    statusBox.innerText = "✅ " + message;
-  } else {
-    statusBox.className = "whatsapp-status error";
-    statusBox.innerText = "❌ " + message;
-  }
-}
+// ========================= WhatsApp API Calls =========================
+const apiWhatsApp = "/api/whatsapp";
 
 async function sendDailyReport() {
   const phone = document.getElementById("reportPhoneNumber").value;
   if (!phone) {
-    alert("⚠️ Please enter a WhatsApp number");
+    showWhatsAppStatus("⚠️ Please enter a WhatsApp number", "error");
     return;
   }
 
@@ -241,16 +232,17 @@ async function sendDailyReport() {
       body: JSON.stringify({ phoneNumber: phone }),
     });
     const data = await res.json();
-    updateWhatsAppStatus(data.success, data.message || "Daily report sent");
+    showWhatsAppStatus(data.message || "✅ Daily report sent!", "success");
   } catch (err) {
-    updateWhatsAppStatus(false, "Error sending daily report");
+    console.error(err);
+    showWhatsAppStatus("❌ Failed to send daily report", "error");
   }
 }
 
 async function sendAbsentAlerts() {
   const phone = document.getElementById("managerPhoneNumber").value;
   if (!phone) {
-    alert("⚠️ Please enter a manager WhatsApp number");
+    showWhatsAppStatus("⚠️ Please enter a manager WhatsApp number", "error");
     return;
   }
 
@@ -261,31 +253,38 @@ async function sendAbsentAlerts() {
       body: JSON.stringify({ managerPhone: phone }),
     });
     const data = await res.json();
-    updateWhatsAppStatus(data.success, data.message || "Absent alerts sent");
+    showWhatsAppStatus(data.message || "✅ Absent alerts sent!", "success");
   } catch (err) {
-    updateWhatsAppStatus(false, "Error sending absent alerts");
+    console.error(err);
+    showWhatsAppStatus("❌ Failed to send absent alerts", "error");
   }
 }
 
 async function testWhatsApp() {
-  const statusBox = document.getElementById("whatsappStatus");
-  statusBox.style.display = "block";
-  statusBox.innerText = "⏳ Testing WhatsApp service...";
-
   try {
     const res = await fetch(`${apiWhatsApp}/test`);
     const data = await res.json();
-    if (data.success) {
-      updateWhatsAppStatus(true, "WhatsApp service working!");
+    if (res.ok) {
+      showWhatsAppStatus(data.message || "✅ WhatsApp service is working!", "success");
     } else {
-      updateWhatsAppStatus(false, "WhatsApp service failed!");
+      showWhatsAppStatus("❌ WhatsApp service failed", "error");
     }
   } catch (err) {
-    updateWhatsAppStatus(false, "Error testing WhatsApp service!");
+    console.error(err);
+    showWhatsAppStatus("❌ WhatsApp test failed", "error");
   }
 }
 
-// Attach events
+// ========================= Status Display =========================
+function showWhatsAppStatus(message, type) {
+  const statusDiv = document.getElementById("whatsappStatus");
+  statusDiv.textContent = message;
+  statusDiv.className = `whatsapp-status ${type}`;
+  statusDiv.style.display = "block";
+}
+
+// ========================= Attach Events =========================
 document.getElementById("dailyReportBtn").onclick = sendDailyReport;
 document.getElementById("absentAlertsBtn").onclick = sendAbsentAlerts;
 document.getElementById("testBtn").onclick = testWhatsApp;
+
