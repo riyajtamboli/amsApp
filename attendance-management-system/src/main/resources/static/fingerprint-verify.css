@@ -1,100 +1,146 @@
-/* ===== Global Layout ===== */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  background-attachment: fixed;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  padding: 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 20px;
 }
 
-/* ===== White Card Container ===== */
+/* Navbar */
+nav {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+nav a {
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  color: white;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+nav a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+nav a.active {
+  background: orange;
+  color: black;
+  font-weight: bold;
+}
+
+/* Container (White Card Style) */
 .container {
-  background: white;
   max-width: 500px;
-  width: 100%;
+  margin: 40px auto;
+  background: #fff;
   padding: 30px 25px;
   border-radius: 20px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  margin-top: 30px;
   text-align: center;
 }
 
-/* ===== Heading ===== */
-.container h1 {
-  font-size: 28px;
+.container h2 {
+  font-size: 26px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   color: #333;
 }
 
 .container p {
   font-size: 16px;
   color: #666;
-  margin-bottom: 25px;
-}
-
-/* ===== Fingerprint Icon Animation ===== */
-.fingerprint-icon {
-  font-size: 60px;
   margin-bottom: 20px;
-  animation: pulse 1.5s infinite;
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 0.7; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.7; }
-}
-
-/* ===== Verify Button ===== */
-.verify-btn {
-  display: inline-block;
+/* Input */
+input {
   width: 100%;
-  padding: 14px 20px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin: 12px 0;
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+}
+
+/* Buttons */
+.verify-button, .mark-button {
   background: linear-gradient(to right, #667eea, #764ba2);
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
   border: none;
-  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 16px;
+  color: white;
+  border-radius: 10px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  margin-top: 10px;
+  font-weight: 600;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.verify-btn:hover {
+.verify-button:hover, .mark-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* ===== Status Text ===== */
-#status-text {
+/* Employee Details */
+.employee-details {
+  background: #f9f9f9;
+  color: #1e3c72;
+  padding: 20px;
+  border-radius: 12px;
   margin-top: 20px;
-  font-weight: bold;
-  font-size: 16px;
-  color: #444;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: left;
 }
 
-/* ===== Responsive ===== */
+/* Not Found Message */
+.not-found {
+  background: linear-gradient(135deg, #ff6b6b, #ee5253);
+  color: white;
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 20px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Success Message */
+.success-message {
+  color: green;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .container {
+    margin: 20px;
     padding: 20px 15px;
   }
 
-  .container h1 {
-    font-size: 24px;
+  .container h2 {
+    font-size: 22px;
   }
 
-  .verify-btn {
-    font-size: 16px;
-  }
-
-  .fingerprint-icon {
-    font-size: 50px;
+  .verify-button, .mark-button {
+    font-size: 15px;
   }
 }
