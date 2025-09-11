@@ -19,15 +19,21 @@ async function fetchRecords(params = {}) {
   return res.json();
 }
 
+// ========================= Status Normalization =========================
+function getStatus(record) {
+  if (record.status) return record.status.toUpperCase();
+  if (record.checkIn || record.time) return "PRESENT";
+  return "ABSENT";
+}
+
 // ========================= Render Functions =========================
 
 // Stats
 function renderStats(records, employees) {
   const today = new Date().toISOString().split("T")[0];
   const presentToday = records.filter(
-    r => r.date === today && (r.status?.toUpperCase() === "PRESENT")
+    r => r.date === today && getStatus(r) === "PRESENT"
   ).length;
-
   const totalEmployees = employees.length;
   const rate =
     totalEmployees > 0
@@ -46,10 +52,7 @@ function renderAbsentList(employees, records, dateSet = null, filterMode = false
   const targetDates = dateSet || new Set([today]);
 
   const presentFps = records
-    .filter(r =>
-      targetDates.has(r.date) &&
-      (r.status?.toUpperCase() === "PRESENT")
-    )
+    .filter(r => targetDates.has(r.date) && getStatus(r) === "PRESENT")
     .map(r => r.fingerprintId || r.employee?.fingerprintId);
 
   const absent = employees.filter(e => !presentFps.includes(e.fingerprintId));
@@ -74,7 +77,7 @@ function renderAbsentList(employees, records, dateSet = null, filterMode = false
   return absent;
 }
 
-// Attendance Records Table
+// Records Table
 function renderRecords(records, employees) {
   const tbody = document.getElementById("recordsBody");
   tbody.innerHTML = records
@@ -83,6 +86,9 @@ function renderRecords(records, employees) {
         employees.find(
           e => e.fingerprintId === (r.fingerprintId || r.employee?.fingerprintId)
         ) || r.employee || {};
+
+      const statusFinal = getStatus(r);
+
       return `
         <tr>
           <td>${r.date}</td>
@@ -90,10 +96,8 @@ function renderRecords(records, employees) {
           <td>${emp.name || "Unknown"}</td>
           <td>${r.fingerprintId || r.employee?.fingerprintId || "-"}</td>
           <td>${emp.department || "-"}</td>
-          <td style="font-weight:bold; color:${
-            (r.status?.toUpperCase() === "PRESENT") ? "green" : "red"
-          }">
-            ${r.status || "-"}
+          <td style="font-weight:bold; color:${statusFinal === "PRESENT" ? "green" : "red"}">
+            ${statusFinal}
           </td>
         </tr>
       `;
@@ -155,39 +159,40 @@ async function loadData(params = {}) {
 
     let filtered = await fetchRecords(params);
 
-    // Normalize case + compute status
+    // ✅ Normalize case + compute status dynamically
     filtered = filtered.filter(r => {
       const recordEmpId = r.fingerprintId || r.employee?.fingerprintId;
-      const statusComputed = r.checkIn ? "PRESENT" : (r.status || "ABSENT");
+      const statusComputed = getStatus(r);
 
       return (
         (!empId || recordEmpId === empId) &&
-        (!status || statusComputed.toUpperCase() === status.toUpperCase())
+        (!status || statusComputed === status.toUpperCase())
       );
     });
 
     console.log("Filtered records:", filtered);
 
+    const dateSet = fromDate || toDate ? new Set([fromDate || toDate]) : null;
+
+    // ✅ If empId is selected, restrict employee list
     const filteredEmployees = empId
       ? employees.filter(e => e.fingerprintId === empId)
       : employees;
 
+    // ✅ Re-render with filtered employees only
     renderRecords(filtered, employees);
-
-    const dateSet = fromDate || toDate ? new Set([fromDate || toDate]) : null;
     absentList = renderAbsentList(filteredEmployees, filtered, dateSet, true);
   };
 
-  // Reset Filters
-  document.getElementById("resetFilters").onclick = () => {
+  document.getElementById("resetFilters").onclick = async () => {
+    console.log("Resetting filters...");
     document.getElementById("employeeFilter").value = "";
     document.getElementById("fromDate").value = "";
     document.getElementById("toDate").value = "";
     document.getElementById("statusFilter").value = "";
-    loadData();
+    loadData(); // reload all
   };
 
-  // Refresh Button
   document.getElementById("refreshData").onclick = () => loadData();
 
   // Export CSV
@@ -206,5 +211,4 @@ async function loadData(params = {}) {
   };
 }
 
-// Initialize
 loadData();
