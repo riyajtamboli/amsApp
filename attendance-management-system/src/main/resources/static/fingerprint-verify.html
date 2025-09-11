@@ -1,69 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fingerprint Verification - Attendance System</title>
-  <link rel="stylesheet" href="fingerprint-verify.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Attendance</title>
+  <link rel="stylesheet" href="verify-attendance.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🔒 Verify Attendance</h1>
+    <p>Place your finger on the scanner to verify your attendance</p>
 
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      min-height: 100vh;
-    }
+    <!-- Fingerprint Icon (Optional Animated) -->
+    <div class="fingerprint-icon">
+      <span>🔍</span>
+    </div>
 
-    /* Navbar */
-    nav {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(12px);
-      padding: 15px;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      border-radius: 0 0 20px 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-    nav a {
-      text-decoration: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      color: white;
-      font-weight: 500;
-      transition: 0.3s;
-    }
-    nav a:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-    nav a.active {
-      background: orange;
-      color: black;
-      font-weight: bold;
-    }
+    <button class="verify-btn" onclick="startVerification()">Scan Fingerprint</button>
+    <p id="status-text"></p>
+  </div>
 
-    /* Container */
-    .container {
-      max-width: 500px;
-      margin: 50px auto;
-      background: rgba(255, 255, 255, 0.15);
-      padding: 30px;
-      border-radius: 15px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-      text-align: center;
-      color: white;
-    }
+  <script>
+    function startVerification() {
+      const status = document.getElementById('status-text');
+      status.textContent = "Scanning... Please wait ⏳";
 
-    h2 {
-      margin-bottom: 10px;
+      // Simulating fingerprint scan delay
+      setTimeout(() => {
+        status.textContent = "✅ Attendance Verified Successfully!";
+        status.style.color = "green";
+      }, 2500);
     }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
+  </script>
+</body>
+</html>      border-radius: 8px;
       margin: 15px 0;
       font-size: 16px;
       text-align: center;
@@ -233,3 +203,4 @@
   </script>
 </body>
 </html>
+
