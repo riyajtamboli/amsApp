@@ -21,6 +21,8 @@ nav {
     justify-content: center;
     gap: 10px;
     flex-wrap: wrap;
+    max-width: 1200px; /* Increased width */
+    width: 100%;
 }
 
 nav a {
