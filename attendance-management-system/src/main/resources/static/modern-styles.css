@@ -192,7 +192,7 @@ body {
 /* WhatsApp Notification Section */
         /* WhatsApp Integration Styles */
         .whatsapp-section {
-            background: linear-gradient(135deg, rgba(37, 211, 102, 0.1), rgba(37, 211, 102, 0.05));
+            background: #ffffff;
             border: 2px solid rgba(37, 211, 102, 0.2);
             border-radius: 15px;
             padding: 25px;
@@ -317,6 +317,7 @@ body {
     width: 100%;
   }
 }
+
 
 
 
