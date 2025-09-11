@@ -42,9 +42,9 @@ function renderStats(records, employees) {
 // Absent
 function renderAbsent(employees, records, filterMode = false) {
   const today = new Date().toISOString().split("T")[0];
-
   const targetDate = filterMode ? null : today;
 
+  // ✅ collect only PRESENT employees
   const presentFps = records
     .filter(r =>
       (!targetDate || r.date === targetDate) &&
@@ -52,6 +52,7 @@ function renderAbsent(employees, records, filterMode = false) {
     )
     .map(r => r.fingerprintId || r.employee?.fingerprintId);
 
+  // ✅ Absent = employees not in presentFps
   const absent = employees.filter(e => !presentFps.includes(e.fingerprintId));
 
   document.getElementById("absentCount").textContent = filterMode
@@ -59,17 +60,22 @@ function renderAbsent(employees, records, filterMode = false) {
     : `${absent.length} employees absent on ${today}`;
 
   const tbody = document.querySelector("#absentTable tbody");
-  tbody.innerHTML = absent
-    .map(
-      e => `
-      <tr>
-        <td>${e.fingerprintId}</td>
-        <td>${e.name}</td>
-        <td>${e.department || "-"}</td>
-        <td style="color:red;font-weight:bold">ABSENT</td>
-      </tr>`
-    )
-    .join("");
+  tbody.innerHTML =
+    absent.length > 0
+      ? absent
+          .map(
+            e => `
+          <tr>
+            <td>${e.fingerprintId}</td>
+            <td>${e.name}</td>
+            <td>${e.department || "-"}</td>
+            <td style="color:red;font-weight:bold">ABSENT</td>
+          </tr>`
+          )
+          .join("")
+      : `<tr><td colspan="4" style="text-align:center;color:green;font-weight:bold">
+          🎉 No absentees today!
+        </td></tr>`;
 
   return absent;
 }
