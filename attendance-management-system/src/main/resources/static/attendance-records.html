@@ -44,19 +44,29 @@
     </div>
 
   <!-- ========================= WhatsApp Notifications ========================= -->
-<div class="card filter-card shadow-sm p-4 mb-4" id="whatsapp-section">
-  <h5 class="section-title mb-3">📱 WhatsApp Notifications</h5>
-
-  <div class="row g-3 align-items-center">
-    <!-- WhatsApp Number -->
-    <div class="col-md-3">
-      <input
-        type="text"
-        id="whatsappPhone"
-        class="form-control"
-        placeholder="Enter WhatsApp Number (+91...)"
-      />
-    </div>
+<div class="whatsapp-section">
+                <h3>📱 WhatsApp Notifications</h3>
+                <div class="whatsapp-controls">
+                    <div class="whatsapp-group">
+                        <button class="btn-whatsapp" id="dailyReportBtn">
+                            📊 Send Daily Report
+                        </button>
+                        <input type="tel" id="reportPhoneNumber" placeholder="+1234567890" class="phone-input">
+                    </div>
+                    <div class="whatsapp-group">
+                        <button " class="btn-whatsapp" id="absentAlertsBtn">
+                            🚨 Send Absent Alerts
+                        </button>
+                        <input type="tel" id="managerPhoneNumber" placeholder="Manager's WhatsApp" class="phone-input">
+                    </div>
+                    <div class="whatsapp-group">
+                        <button " class="btn-whatsapp-test" id="testBtn">
+                            🧪 Test WhatsApp
+                        </button>
+                    </div>
+                </div>
+                <div id="whatsappStatus" class="whatsapp-status" style="display: none;"></div>
+            </div>
 
     <!-- Manager WhatsApp -->
     <div class="col-md-3">
@@ -158,6 +168,7 @@
   <script src="attendance-records.js"></script>
 </body>
 </html>
+
 
 
 
