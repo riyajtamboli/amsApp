@@ -12,7 +12,8 @@
 /* Background Gradient */
 body {
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #6a11cb, #2575fc); /* purple → blue */
+ /* purple → blue */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   color: #333;
   line-height: 1.6;
@@ -317,6 +318,7 @@ body {
     width: 100%;
   }
 }
+
 
 
 
